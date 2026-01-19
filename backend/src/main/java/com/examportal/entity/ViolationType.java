@@ -1,0 +1,17 @@
+package com.examportal.entity;
+
+public enum ViolationType {
+    TAB_SWITCH,
+    MULTIPLE_FACES,
+    NO_FACE,
+    PHONE_DETECTED,
+    CAMERA_DETECTED,
+    COPY_ATTEMPT,
+    PASTE_ATTEMPT,
+    FULLSCREEN_EXIT,
+    DEVTOOLS_OPENED,
+    IP_MISMATCH,
+    KEYSTROKE_ANOMALY,
+    IP_TRACKED,
+    IP_ADDRESS_CHANGED
+}
