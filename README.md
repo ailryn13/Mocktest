@@ -37,7 +37,7 @@ Before running the app, make sure:
 - Open Docker Desktop and wait for it to start
 - Run `.\start-app.ps1` again
 
-### Port 8080 or 5173 already in use
+### Port 8080 or 3001 already in use
 - Run `.\stop-app.ps1` first
 - Then run `.\start-app.ps1` again
 
@@ -65,7 +65,7 @@ mock test/
 ## 🌐 Access Points
 
 After starting:
-- **Application**: http://localhost:5173
+- **Application**: http://localhost:3001
 - **Backend API**: http://localhost:8080
 - **RabbitMQ Admin**: http://localhost:15672 (user: exam_user, pass: exam_password)
 
