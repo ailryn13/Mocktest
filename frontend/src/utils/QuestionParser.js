@@ -161,33 +161,44 @@ export const QuestionParser = {
                 return question;
             } else {
                 // Coding Logic (Key: Value parsing)
-                const titleMatch = block.match(/Title:\s*(.+)/i);
-                const descMatch = block.match(/Description:\s*(.+)/i);
-                const constraintsMatch = block.match(/Constraints:\s*(.+)/i);
-                const marksMatch = block.match(/Marks:\s*(\d+)/i);
-                const languagesMatch = block.match(/Allowed Languages:\s*(.+)/i);
+                // Coding Logic (Key: Value parsing) - Enhanced for single-line/stream format
+                const lookahead = '(?=\\s*(?:Title:|Marks:|Description:|Constraints:|Allowed Languages:|Input:|Output:|$))';
 
-                const inputRegex = /Input:\s*(.+?)(?=\nOutput:|$)/gi;
+                const getField = (keyword) => {
+                    const regex = new RegExp(`${keyword}:\\s*([\\s\\S]+?)${lookahead}`, 'i');
+                    const match = block.match(regex);
+                    return match ? match[1].trim() : null;
+                };
+
+                const title = getField('Title');
+                const marks = getField('Marks');
+                const description = getField('Description');
+                const constraints = getField('Constraints');
+                const languages = getField('Allowed Languages');
 
                 // Parse Test Cases (Input: ... Output: ...)
                 const testCases = [];
+                // Split by "Input:" but keep the rest of the string intact to find paired Output
+                const inputSplit = block.split(/Input:\s*/i);
 
-                // We use a loop to match pairs. 
-                // Alternative safer approach: Split by "Input:" and parse chunks
-                const inputParts = block.split(/Input:\s*/i).slice(1); // skip first empty
+                // Skip the first part (before first Input:)
+                for (let i = 1; i < inputSplit.length; i++) {
+                    const section = inputSplit[i];
+                    // We need to find the corresponding Output for this Input section
+                    // The Output might be followed by another Keyword or end of string
+                    const outputMatch = section.match(/Output:\s*([\s\S]+?)(?=\s*(?:Title:|Marks:|Description:|Constraints:|Allowed Languages:|Input:|$))/i);
 
-                inputParts.forEach(part => {
-                    const outputSplit = part.split(/Output:\s*/i);
-                    if (outputSplit.length >= 2) {
-                        const inp = outputSplit[0].trim();
-                        const out = outputSplit[1].split('\n')[0].trim(); // Take first line of output or until next field
-                        testCases.push({ input: inp, output: out });
+                    if (outputMatch) {
+                        // The input is everything before "Output:"
+                        const inputVal = section.substring(0, section.indexOf(outputMatch[0])).trim();
+                        const outputVal = outputMatch[1].trim();
+                        testCases.push({ input: inputVal, output: outputVal });
                     }
-                });
+                }
 
                 let allowedLanguages = [62, 71, 54, 63]; // Default ALL
-                if (languagesMatch) {
-                    const langsStr = languagesMatch[1].toLowerCase();
+                if (languages) {
+                    const langsStr = languages.toLowerCase();
                     allowedLanguages = [];
                     if (langsStr.includes('java')) allowedLanguages.push(62);
                     if (langsStr.includes('python')) allowedLanguages.push(71);
@@ -195,17 +206,14 @@ export const QuestionParser = {
                     if (langsStr.includes('javascript') || langsStr.includes('js')) allowedLanguages.push(63);
                 }
 
-                if (titleMatch) {
-                    const title = titleMatch[1].trim();
-                    const desc = descMatch ? descMatch[1].trim() : '';
-
+                if (title) {
                     return {
                         tempId: Date.now() + Math.random() + index,
                         type: 'CODING',
-                        questionText: `**${title}**\n\n${desc}`, // Combine Title and Description
-                        constraints: QuestionParser.parseConstraints(constraintsMatch ? constraintsMatch[1] : ''),
-                        marks: marksMatch ? parseInt(marksMatch[1]) : 10,
-                        allowedLanguageIds: allowedLanguages,
+                        questionText: `**${title}**\n\n${description || ''}`, // Combine Title and Description
+                        constraints: QuestionParser.parseConstraints(constraints || ''),
+                        marks: marks ? parseInt(marks) : 10,
+                        allowedLanguageIds: allowedLanguages.length > 0 ? allowedLanguages : undefined,
                         testCases: testCases,
                         memoryLimit: 1024,
                         timeLimit: 2,

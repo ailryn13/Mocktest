@@ -45,12 +45,15 @@ public class TestService {
 
     @Transactional
     public TestDTO createTest(TestDTO dto) {
-        departmentSecurityService.verifyDepartmentAccess(dto.getDepartment());
+        // Enforce department from authenticated user
+        String userDepartment = departmentSecurityService.getCurrentUserDepartment();
+        // departmentSecurityService.verifyDepartmentAccess(userDepartment); //
+        // Implicitly valid
 
         Test test = new Test();
         test.setTitle(dto.getTitle());
         test.setDescription(dto.getDescription());
-        test.setDepartment(dto.getDepartment());
+        test.setDepartment(userDepartment);
         test.setStartDateTime(dto.getStartDateTime());
         test.setEndDateTime(dto.getEndDateTime());
         test.setDurationMinutes(dto.getDurationMinutes());

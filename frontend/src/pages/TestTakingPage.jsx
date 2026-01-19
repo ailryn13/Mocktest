@@ -52,6 +52,14 @@ export default function TestTakingPage() {
             setTimeout(() => {
                 window.location.href = '/exam-terminated';
             }, 2000);
+        },
+        (error) => {
+            // Camera Failed Callback - Block test
+            console.error('CRITICAL: Camera access denied - Blocking test', error);
+            toast.error('Camera access is mandatory for this test. Redirecting to dashboard...');
+            setTimeout(() => {
+                navigate('/student/dashboard');
+            }, 3000);
         }
     );
 

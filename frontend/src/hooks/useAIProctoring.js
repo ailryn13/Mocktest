@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation = null) => {
+export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation = null, onCameraFailed = null) => {
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [faceCount, setFaceCount] = useState(0);
     const [detectedObjects, setDetectedObjects] = useState([]);
@@ -107,7 +107,12 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
             } catch (error) {
                 console.error('Webcam access denied:', error);
                 setCameraStatus('error');
-                toast.error('Please enable webcam for proctoring');
+                toast.error('Camera access is required to take this test. Please enable your webcam and refresh the page.');
+
+                // CRITICAL: Invoke callback to block test if camera fails
+                if (onCameraFailed) {
+                    onCameraFailed(error);
+                }
             }
         };
 
@@ -127,14 +132,20 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
 
         const runDetection = async () => {
             try {
-                // Face detection with landmarks
+                // Face detection with landmarks (lowered threshold for better detection)
                 const faceDetections = await faceapi.detectAllFaces(
                     videoRef.current,
-                    new faceapi.TinyFaceDetectorOptions()
+                    new faceapi.TinyFaceDetectorOptions({
+                        inputSize: 416,        // Higher resolution for better accuracy
+                        scoreThreshold: 0.3    // Lower threshold (default is 0.5) to detect more faces
+                    })
                 ).withFaceLandmarks(true);  // Enable landmarks
 
                 const currentFaceCount = faceDetections.length;
                 setFaceCount(currentFaceCount);
+
+                // DEBUG: Log face count
+                console.log(`Face Detection: ${currentFaceCount} face(s) detected`);
 
                 const now = Date.now();
 
@@ -169,12 +180,14 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
 
                 // Multiple faces detected
                 if (currentFaceCount > 1) {
+                    console.warn(`⚠️ MULTIPLE FACES DETECTED: ${currentFaceCount} faces`);
                     if (!lastViolationTime.current.multipleFaces ||
                         now - lastViolationTime.current.multipleFaces > 10000) {
                         await logViolation('MULTIPLE_FACES_DETECTED', {
                             faceCount: currentFaceCount
                         });
                         lastViolationTime.current.multipleFaces = now;
+                        console.log(`✅ Multiple face violation logged`);
                     }
                 }
 
@@ -196,6 +209,25 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
                     console.log('AI Objects:', predictions.map(p => `${p.class} (${Math.round(p.score * 100)}%)`));
                 }
 
+                // MULTIPLE PERSON DETECTION (using COCO-SSD instead of face-api.js)
+                const personDetections = predictions.filter(pred => pred.class.toLowerCase() === 'person');
+                const personCount = personDetections.length;
+
+                console.log(`Person Detection: ${personCount} person(s) detected`);
+
+                if (personCount > 1) {
+                    console.warn(`⚠️ MULTIPLE PEOPLE DETECTED: ${personCount} people`);
+                    if (!lastViolationTime.current.multiplePeople ||
+                        now - lastViolationTime.current.multiplePeople > 10000) {
+                        await logViolation('MULTIPLE_FACES_DETECTED', {
+                            personCount: personCount,
+                            detectionMethod: 'COCO-SSD'
+                        });
+                        lastViolationTime.current.multiplePeople = now;
+                        console.log(`✅ Multiple person violation logged`);
+                    }
+                }
+
                 // Enhanced phone camera detection
                 const phoneDetections = predictions.filter(pred => {
                     const className = pred.class.toLowerCase();
@@ -212,9 +244,9 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
                         const bbox = phone.bbox;
                         const key = 'camera_detected';
 
-                        // Reduced debounce to 3 seconds
+                        // Reduced debounce to 1 second for faster response
                         if (!lastViolationTime.current[key] ||
-                            now - lastViolationTime.current[key] > 3000) {
+                            now - lastViolationTime.current[key] > 1000) {
 
                             // CRITICAL: Immediate Frontend Freeze
                             if (onCriticalViolation) {
@@ -271,10 +303,10 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
 
             await runDetection();
 
-            // Calculate delay to maintain ~500ms equivalent interval
-            // If detection took 100ms, wait 400ms. If it took 600ms, wait 0ms (immediate).
+            // Calculate delay to maintain ~250ms equivalent interval (faster detection)
+            // If detection took 100ms, wait 150ms. If it took 300ms, wait 0ms (immediate).
             const elapsed = Date.now() - startTime;
-            const delay = Math.max(10, 500 - elapsed);
+            const delay = Math.max(10, 250 - elapsed);
 
             detectionInterval.current = setTimeout(detectionLoop, delay);
         };
