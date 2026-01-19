@@ -141,16 +141,6 @@ export default function LoginPage() {
             {loading ? 'Logging in...' : 'Start Exam'}
           </button>
         </form>
-
-        <p className="text-sm text-gray-400 text-center mt-4">
-          ⚠️ Camera and microphone access required
-        </p>
-
-        <div className="mt-6 p-3 bg-gray-700 rounded text-xs text-gray-300 border border-gray-600">
-          <p className="font-semibold text-green-400 mb-1">Demo Credentials:</p>
-          <p>📧 Email: <span className="text-white">moderator@examportal.com</span></p>
-          <p>🔑 Password: <span className="text-white">moderator123</span></p>
-        </div>
       </div>
     </div>
   )
