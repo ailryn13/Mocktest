@@ -37,8 +37,8 @@ else {
 $oldPreference = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
 
-Write-Host "Running docker-compose..."
-docker-compose up -d
+Write-Host "Running docker compose..."
+docker compose up -d
 
 if ($LASTEXITCODE -ne 0) {
     $ErrorActionPreference = $oldPreference

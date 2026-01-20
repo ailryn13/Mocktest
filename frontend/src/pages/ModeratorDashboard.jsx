@@ -32,7 +32,7 @@ export default function ModeratorDashboard() {
     async function init() {
       try {
         // Set exam
-        setCurrentExam(examId, 'Data Structures Final Exam')
+        setCurrentExam(examId, 'Signal Intelligence - Batch A-4')
 
         // Load initial violations
         const response = await violationAPI.getExamViolations(examId)
@@ -51,58 +51,63 @@ export default function ModeratorDashboard() {
   const handleTerminateStudent = async (studentId, reason) => {
     try {
       sendTermination(studentId, reason)
-      toast.success('Student terminated')
+      toast.success('STUDENT VOIDED')
       setSelectedStudent(null)
     } catch (error) {
-      toast.error('Failed to terminate student')
+      toast.error('FAILURE TO VOID')
     }
   }
 
   const handleSendWarning = async (studentId, message) => {
     try {
       sendWarning(studentId, message)
-      toast.success('Warning sent')
+      toast.success('INTERCEPT SENT')
     } catch (error) {
-      toast.error('Failed to send warning')
+      toast.error('FAILURE TO SEND')
     }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-950">
-        <div className="spinner" />
+      <div className="flex items-center justify-center h-screen bg-slate-950">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="prof-spinner" />
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest animate-pulse">Initializing Dashboard...</span>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <DashboardHeader 
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30">
+      <DashboardHeader
         examTitle={examTitle}
         isConnected={isConnected}
       />
 
-      <div className="container mx-auto px-6 py-6">
-        <StatsOverview stats={stats} />
+      <main className="max-w-[1600px] mx-auto px-6 pb-20">
+        <div className="mb-8">
+          <StatsOverview stats={stats} />
+        </div>
 
-        <FilterBar />
+        <div className="space-y-8">
+          <FilterBar />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          {/* Student Grid - 2/3 width */}
-          <div className="lg:col-span-2">
-            <StudentGrid 
-              onSelectStudent={setSelectedStudent}
-            />
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Main Content - 3/4 width */}
+            <div className="lg:col-span-3">
+              <StudentGrid onSelectStudent={setSelectedStudent} />
+            </div>
 
-          {/* Violation Log - 1/3 width */}
-          <div>
-            <ViolationLog />
+            {/* Sidebar - 1/4 width */}
+            <div className="lg:col-span-1">
+              <ViolationLog />
+            </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Student Detail Modal */}
+      {/* Detail Overlay */}
       {selectedStudent && (
         <StudentDetailModal
           student={selectedStudent}

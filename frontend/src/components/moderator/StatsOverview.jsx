@@ -1,52 +1,72 @@
-import { Users, UserCheck, AlertTriangle, XCircle } from 'lucide-react'
+import { Users, UserCheck, AlertTriangle, XCircle, TrendingUp } from 'lucide-react'
 
 export default function StatsOverview({ stats }) {
   const statCards = [
     {
-      label: 'Total Students',
+      label: 'Session Total',
       value: stats.totalStudents,
+      sublabel: 'Total candidates enrolled',
       icon: Users,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-900/20',
+      color: 'text-indigo-400',
+      bg: 'bg-indigo-500/10',
+      border: 'border-indigo-500/20',
     },
     {
-      label: 'Active',
+      label: 'Currently Active',
       value: stats.activeStudents,
+      sublabel: 'Live connections active',
       icon: UserCheck,
-      color: 'text-green-400',
-      bgColor: 'bg-green-900/20',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/20',
     },
     {
-      label: 'Flagged (≥3 strikes)',
+      label: 'Flagged Activity',
       value: stats.flaggedStudents,
+      sublabel: 'Requires attention',
       icon: AlertTriangle,
-      color: 'text-yellow-400',
-      bgColor: 'bg-yellow-900/20',
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/20',
     },
     {
-      label: 'Terminated',
+      label: 'Session Terminated',
       value: stats.terminatedStudents,
+      sublabel: 'Violations resolved',
       icon: XCircle,
-      color: 'text-red-400',
-      bgColor: 'bg-red-900/20',
+      color: 'text-rose-400',
+      bg: 'bg-rose-500/10',
+      border: 'border-rose-500/20',
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {statCards.map((stat, index) => (
         <div
           key={index}
-          className={`${stat.bgColor} rounded-lg p-6 border border-gray-800`}
+          className="prof-panel p-5 relative overflow-hidden group hover:border-slate-700 transition-colors"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between relative z-10">
             <div>
-              <p className="text-sm text-gray-400 mb-1">{stat.label}</p>
-              <p className={`text-3xl font-bold ${stat.color}`}>
-                {stat.value}
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                {stat.label}
+              </p>
+              <h3 className="text-3xl font-bold text-white tracking-tight">
+                {stat.value || '0'}
+              </h3>
+              <p className="text-[11px] font-medium text-slate-500 mt-1">
+                {stat.sublabel}
               </p>
             </div>
-            <stat.icon size={40} className={stat.color} />
+            <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} border ${stat.border}`}>
+              <stat.icon size={20} />
+            </div>
+          </div>
+
+          {/* Subtle trend line or background element */}
+          <div className="absolute -bottom-1 -right-1 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+            <stat.icon size={80} />
           </div>
         </div>
       ))}
