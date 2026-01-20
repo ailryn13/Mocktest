@@ -26,54 +26,44 @@ export default function StudentHistoryPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400 mb-4"></div>
-                    <p className="text-white text-xl">Loading history...</p>
+                    <div className="prof-spinner mb-4 mx-auto"></div>
+                    <p className="text-slate-400">Loading your history...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-6">
-            {/* Background decorations */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 right-20 w-64 h-64 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse-slow"></div>
-                <div className="absolute bottom-20 left-20 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
-            </div>
-
-            <div className="max-w-6xl mx-auto relative z-10">
+        <div className="min-h-screen bg-slate-950 text-slate-200">
+            <div className="max-w-6xl mx-auto p-6 relative z-10">
                 <button
                     onClick={() => navigate('/student/tests')}
-                    className="mb-8 flex items-center gap-2 text-gray-300 hover:text-cyan-400 transition-all duration-300 group"
+                    className="mb-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm group"
                 >
-                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    <span className="font-medium">Back to Dashboard</span>
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    Back to Home
                 </button>
 
-                <div className="backdrop-blur-xl bg-white/5 rounded-2xl p-6 mb-8 border border-white/10 shadow-glass animate-fade-in">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-glow-cyan">
-                            <History className="text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                                My Test History
-                            </h1>
-                            <p className="text-gray-400">Review your past performance and detailed feedback</p>
-                        </div>
+                <div className="prof-panel p-6 mb-8 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
+                        <History className="text-indigo-400 w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">Performance History</h1>
+                        <p className="text-slate-400 text-sm">Review your past evaluations and feedback</p>
                     </div>
                 </div>
 
                 {history.length === 0 ? (
-                    <div className="backdrop-blur-xl bg-white/5 rounded-2xl p-20 text-center border border-white/10 animate-scale-in">
-                        <div className="text-7xl mb-6">📊</div>
-                        <p className="text-2xl text-white font-semibold mb-2">No test history yet</p>
-                        <p className="text-gray-400 max-w-md mx-auto">Complete some tests to see your history, scores, and detailed reviews here.</p>
+                    <div className="prof-panel p-20 text-center">
+                        <div className="text-5xl mb-6 opacity-20">📊</div>
+                        <h3 className="text-xl font-semibold text-white mb-2">No history recorded</h3>
+                        <p className="text-slate-400 max-w-sm mx-auto">Once you complete your first assessment, it will appear here with detailed performance metrics.</p>
                     </div>
                 ) : (
-                    <div className="grid gap-6 animate-slide-up">
+                    <div className="space-y-4">
                         {history.map((attempt, index) => (
                             <TestHistoryCard
                                 key={attempt.id}
@@ -106,85 +96,75 @@ function TestHistoryCard({ attempt, index }) {
 
     const percentage = attempt.totalMarks ? (attempt.score / attempt.totalMarks) * 100 : 0;
 
-    const getBadgeStyle = () => {
-        if (percentage >= 80) return 'from-green-500 to-emerald-500 shadow-glow-green';
-        if (percentage >= 60) return 'from-yellow-500 to-orange-500 shadow-glow-orange';
-        return 'from-red-500 to-pink-500 shadow-glow-red';
+    const getScoreStyle = () => {
+        if (percentage >= 80) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+        if (percentage >= 60) return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+        return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
     };
 
     return (
-        <div
-            className="backdrop-blur-xl bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:bg-white/10 group"
-            style={{ animationDelay: `${index * 0.1}s` }}
-        >
-            <div className="flex flex-col md:flex-row justify-between gap-6">
-                <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors">
-                            {attempt.testTitle || `Test #${attempt.testId}`}
+        <div className="prof-card p-6 border-l-4 border-l-indigo-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="flex-1 space-y-4">
+                    <div className="flex items-center gap-3">
+                        <h3 className="text-xl font-bold text-white">
+                            {attempt.testTitle || `Evaluation #${attempt.testId}`}
                         </h3>
                         {attempt.status === 'FROZEN' && (
-                            <span className="px-3 py-1 bg-red-500/20 text-red-300 text-xs font-bold rounded-full border border-red-500/30 uppercase tracking-wider">
-                                Frozen
+                            <span className="px-2 py-0.5 bg-rose-500/10 text-rose-500 text-[10px] font-bold rounded border border-rose-500/20 uppercase tracking-widest">
+                                Suspended
                             </span>
                         )}
+                        <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-bold rounded border border-white/5 uppercase tracking-widest">
+                            {attempt.status}
+                        </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-300">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
-                            <span>Started: {formatDate(attempt.startedAt)}</span>
+                    <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                            Started: {formatDate(attempt.startedAt)}
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-purple-400"></span>
-                            <span>Submitted: {formatDate(attempt.submittedAt)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                            <span>Status: <span className="font-semibold text-blue-300 uppercase">{attempt.status}</span></span>
+                        <div className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                            Submitted: {formatDate(attempt.submittedAt)}
                         </div>
                     </div>
 
                     {attempt.violationCount > 0 && (
-                        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3">
-                            <AlertTriangle className="text-red-400 shrink-0 w-5 h-5" />
-                            <div>
-                                <p className="text-red-300 font-semibold text-sm">
-                                    {attempt.violationCount} Proctoring Violations Detected
-                                </p>
-                                {attempt.autoSubmitted && (
-                                    <p className="text-red-400/80 text-xs mt-1">⚠️ Restricted due to critical violation policies.</p>
-                                )}
-                            </div>
+                        <div className="p-3 bg-rose-500/5 border border-rose-500/10 rounded-lg inline-flex items-center gap-3">
+                            <AlertTriangle className="text-rose-500 w-4 h-4" />
+                            <span className="text-rose-400 font-semibold text-xs">
+                                {attempt.violationCount} Integrity Violations Flagged
+                            </span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-col items-center justify-center gap-4">
+                <div className="flex items-center gap-8 min-w-max">
                     {attempt.totalMarks > 0 && (
-                        <div className={`bg-gradient-to-br ${getBadgeStyle()} w-32 h-32 rounded-full flex flex-col items-center justify-center border-4 border-white/10 group-hover:scale-110 transition-transform duration-500`}>
-                            <div className="text-2xl font-black text-white">{attempt.score.toFixed(1)}</div>
-                            <div className="text-[10px] text-white/80 font-bold uppercase tracking-widest">Marks</div>
-                            <div className="h-px w-8 bg-white/30 my-1"></div>
-                            <div className="text-white font-black">{percentage.toFixed(1)}%</div>
+                        <div className={`flex flex-col items-center justify-center w-24 h-24 rounded-full border-2 ${getScoreStyle()}`}>
+                            <div className="text-lg font-bold">{attempt.score.toFixed(1)}</div>
+                            <div className="text-[8px] font-black uppercase tracking-tighter opacity-60">of {attempt.totalMarks}</div>
+                            <div className="text-xs font-black mt-1">{percentage.toFixed(0)}%</div>
                         </div>
                     )}
 
-                    <div className="w-full flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 w-32">
                         {(attempt.status === 'SUBMITTED' || attempt.status === 'FROZEN' || new Date(attempt.testEndDate) < new Date()) ? (
                             <button
                                 onClick={() => navigate(`/student/history/tests/${attempt.testId}/review`)}
-                                className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-md text-white rounded-xl transition-all duration-300 font-bold flex items-center justify-center gap-2 border border-white/10 hover:border-cyan-400/50"
+                                className="btn-secondary w-full py-2 flex items-center justify-center gap-2 text-xs"
                             >
-                                <ExternalLink className="w-4 h-4" />
+                                <ExternalLink className="w-3.5 h-3.5" />
                                 Review
                             </button>
                         ) : (
                             <button
                                 onClick={() => navigate(`/student/test/${attempt.testId}`)}
-                                className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-xl transition-all duration-300 font-bold flex items-center justify-center gap-2 shadow-glow-cyan"
+                                className="btn-primary w-full py-2 flex items-center justify-center gap-2 text-xs"
                             >
-                                <PlayCircle className="w-4 h-4" />
+                                <PlayCircle className="w-3.5 h-3.5" />
                                 Resume
                             </button>
                         )}

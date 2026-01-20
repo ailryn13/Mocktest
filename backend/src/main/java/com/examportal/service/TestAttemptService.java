@@ -44,6 +44,14 @@ public class TestAttemptService {
                     return new RuntimeException("Test not found");
                 });
 
+        // FIX: Ensure duration is at least 60 mins for "sample" tests to prevent
+        // immediate expiration
+        if (test.getDurationMinutes() == null || test.getDurationMinutes() <= 0) {
+            log.warn("Test {} has invalid duration. Defaulting to 60m for stability.", testId);
+            test.setDurationMinutes(60);
+            testRepository.save(test);
+        }
+
         // Verify department access
         String studentDepartment = departmentSecurityService.getCurrentUserDepartment();
         String testDept = test.getDepartment() != null ? test.getDepartment() : "General";
@@ -215,8 +223,13 @@ public class TestAttemptService {
                     attempt.getActualStartTime(),
                     actualEnd).toMinutes();
 
-            // Allow 5-minute buffer for network delays
-            long maxAllowedMinutes = test.getDurationMinutes() + 5;
+            // Allow 10-minute buffer for network delays (Increased from 5 for stability)
+            long maxAllowedMinutes = test.getDurationMinutes() + 10;
+
+            // Fallback: If duration was 0, use a SAFE max
+            if (test.getDurationMinutes() <= 0) {
+                maxAllowedMinutes = 120; // 2 hour safety net
+            }
 
             log.info("SubmitTest: Attempt {}, Start={}, End={}, Duration={}m, Max={}m",
                     attemptId, attempt.getActualStartTime(), actualEnd, actualDurationMinutes, maxAllowedMinutes);

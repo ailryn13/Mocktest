@@ -95,6 +95,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/student/dashboard" element={<Navigate to="/student/tests" replace />} />
           <Route
             path="/student/test/:testId"
             element={

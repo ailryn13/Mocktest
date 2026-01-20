@@ -2,25 +2,25 @@ import React from 'react';
 
 export default function WebcamPreview({ videoRef, faceCount, detectedObjects, modelsLoaded, cameraStatus, headRotation }) {
     return (
-        <div className="fixed bottom-4 left-4 z-50">
-            <div className="bg-gray-800 rounded-lg shadow-2xl overflow-hidden border-2 border-gray-700">
+        <div className="fixed bottom-6 left-6 z-50">
+            <div className="prof-panel overflow-hidden border-2 border-indigo-500/20 shadow-2xl">
                 {/* Video Preview */}
                 <div className="relative">
                     {/* Camera Status Overlays */}
                     {cameraStatus === 'error' && (
-                        <div className="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center text-center p-2 z-10">
-                            <span className="text-2xl mb-1">🚫</span>
-                            <p className="text-red-400 font-bold text-xs">Camera Error</p>
-                            <p className="text-gray-400 text-[10px] leading-tight mt-1">
-                                Check permissions or close other apps using camera.
+                        <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-center p-4 z-10">
+                            <span className="text-2xl mb-2">🚫</span>
+                            <p className="text-rose-500 font-bold text-xs uppercase tracking-widest">Signal Error</p>
+                            <p className="text-slate-500 text-[10px] leading-tight mt-2 px-2">
+                                Access denied. Please verify permissions in system settings.
                             </p>
                         </div>
                     )}
 
                     {cameraStatus === 'loading' && (
-                        <div className="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center text-center z-10">
-                            <span className="text-2xl mb-1 animate-pulse">📷</span>
-                            <p className="text-blue-400 font-bold text-xs">Starting Camera...</p>
+                        <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-center z-10">
+                            <div className="prof-spinner mb-3"></div>
+                            <p className="text-indigo-400 font-bold text-[10px] uppercase tracking-widest">Initializing Optic...</p>
                         </div>
                     )}
 
@@ -29,79 +29,43 @@ export default function WebcamPreview({ videoRef, faceCount, detectedObjects, mo
                         autoPlay
                         muted
                         playsInline
-                        className="w-64 h-48 object-cover"
+                        className="w-56 h-40 object-cover grayscale opacity-80"
                     />
 
                     {/* Status Overlay */}
                     <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
                         {/* AI Status */}
-                        <div className={`px-2 py-1 rounded text-xs font-semibold ${modelsLoaded ? 'bg-green-600' : 'bg-yellow-600'
-                            } text-white`}>
-                            {modelsLoaded ? '🤖 AI Active' : '⏳ Loading...'}
+                        <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter ${modelsLoaded ? 'bg-indigo-600' : 'bg-slate-700'
+                            } text-white shadow-lg`}>
+                            {modelsLoaded ? 'AI ACTIVE' : 'SYSTEM IDLE'}
                         </div>
 
                         {/* Face Count */}
-                        <div className={`px-2 py-1 rounded text-xs font-semibold ${faceCount === 1 ? 'bg-green-600' :
-                            faceCount === 0 ? 'bg-red-600' : 'bg-orange-600'
-                            } text-white`}>
-                            {faceCount === 0 ? '⚠️ No Face' :
-                                faceCount === 1 ? '✓ 1 Face' :
-                                    `⚠️ ${faceCount} Faces`}
+                        <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter ${faceCount === 1 ? 'bg-indigo-600' :
+                            faceCount === 0 ? 'bg-rose-600' : 'bg-amber-600'
+                            } text-white shadow-lg`}>
+                            {faceCount === 0 ? 'NO SIGNAL' :
+                                faceCount === 1 ? 'LOCKED' :
+                                    'MULTIPLE'}
                         </div>
                     </div>
 
-                    {/* Detected Objects with Bounding Boxes (Violations Only) */}
-                    {detectedObjects.map((obj, idx) => {
-                        // Check if object is a violation
-                        const isViolation = ['cell phone', 'mobile', 'remote'].some(c => obj.class.toLowerCase().includes(c));
-                        if (!isViolation) return null;
-
-                        // Calculate scaling factors
-                        // Source is 640x480 (from useAIProctoring)
-                        const sourceWidth = 640;
-                        const sourceHeight = 480;
-
-                        // Display size
-                        const displayWidth = videoRef.current ? videoRef.current.clientWidth : 256;
-                        const displayHeight = videoRef.current ? videoRef.current.clientHeight : 192;
-
-                        const scaleX = displayWidth / sourceWidth;
-                        const scaleY = displayHeight / sourceHeight;
-
-                        return (
-                            <div
-                                key={idx}
-                                className="absolute border-2 border-red-500 bg-red-500 bg-opacity-20 flex flex-col justify-end"
-                                style={{
-                                    left: `${obj.bbox[0] * scaleX}px`,
-                                    top: `${obj.bbox[1] * scaleY}px`,
-                                    width: `${obj.bbox[2] * scaleX}px`,
-                                    height: `${obj.bbox[3] * scaleY}px`,
-                                }}
-                            >
-                                <span className="bg-red-600 text-white text-[10px] px-1 w-max font-bold">
-                                    {obj.class} {(obj.score * 100).toFixed(0)}%
-                                </span>
-                            </div>
-                        )
-                    })}
                     {/* HEAD ROTATION WARNING */}
                     {headRotation && (
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-                            <div className="bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg animate-bounce font-bold text-center border-2 border-white">
-                                <span className="text-2xl block">👀</span>
-                                LOOK AT SCREEN
-                                <div className="text-xs opacity-75 mt-1">Head Turned</div>
+                        <div className="absolute inset-0 bg-rose-600/20 backdrop-blur-[1px] flex items-center justify-center z-20">
+                            <div className="bg-rose-600 text-white px-3 py-1.5 rounded font-bold text-[10px] uppercase tracking-widest shadow-xl animate-pulse border border-white/20">
+                                Maintain Forward Focus
                             </div>
                         </div>
                     )}
                 </div>
 
                 {/* Info Bar */}
-                <div className="bg-gray-900 px-3 py-2 text-xs text-gray-400">
-                    <div className="flex items-center justify-between">
-                        <span>📹 Proctoring Active</span>
-                        <span className="text-green-400">●</span>
+                <div className="bg-slate-900 px-3 py-1.5 flex items-center justify-between border-t border-white/5">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Secure Feed</span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-tighter">Encrypted</span>
+                        <div className="status-indicator status-active !w-1.5 !h-1.5 prof-pulse"></div>
                     </div>
                 </div>
             </div>

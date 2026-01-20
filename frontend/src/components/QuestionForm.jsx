@@ -22,7 +22,7 @@ export default function QuestionForm({ onSubmit, loading, initialData = null, te
         languageId: 62, // Default (can receive from drop-down if needed)
         starterCode: '',
         constraints: initialData?.constraints || { banLoops: false, requireRecursion: false },
-        allowedLanguages: initialData?.allowedLanguages || [62, 71, 54, 63], // Default ALL
+        allowedLanguages: initialData?.allowedLanguages || [62, 71, 54, 50, 63, 82], // Default ALL
     });
 
     const toggleLanguage = (id) => {
@@ -203,10 +203,24 @@ export default function QuestionForm({ onSubmit, loading, initialData = null, te
                                     />
                                     <Form.Check
                                         type="checkbox"
+                                        label="C (50)"
+                                        className="text-white"
+                                        checked={formData.allowedLanguages?.includes(50)}
+                                        onChange={() => toggleLanguage(50)}
+                                    />
+                                    <Form.Check
+                                        type="checkbox"
                                         label="JavaScript (63)"
                                         className="text-white"
                                         checked={formData.allowedLanguages?.includes(63)}
                                         onChange={() => toggleLanguage(63)}
+                                    />
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="SQL (82)"
+                                        className="text-white"
+                                        checked={formData.allowedLanguages?.includes(82)}
+                                        onChange={() => toggleLanguage(82)}
                                     />
                                 </div>
                             </Form.Group>

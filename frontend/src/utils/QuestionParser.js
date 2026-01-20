@@ -196,14 +196,17 @@ export const QuestionParser = {
                     }
                 }
 
-                let allowedLanguages = [62, 71, 54, 63]; // Default ALL
+                let allowedLanguages = [62, 71, 54, 63, 82]; // Default ALL + SQL
                 if (languages) {
                     const langsStr = languages.toLowerCase();
                     allowedLanguages = [];
                     if (langsStr.includes('java')) allowedLanguages.push(62);
                     if (langsStr.includes('python')) allowedLanguages.push(71);
                     if (langsStr.includes('c++') || langsStr.includes('cpp')) allowedLanguages.push(54);
+                    // Check for C language specifically (avoid matching c++ or class etc)
+                    if (langsStr.split(/[^a-zA-Z]/).includes('c')) allowedLanguages.push(50);
                     if (langsStr.includes('javascript') || langsStr.includes('js')) allowedLanguages.push(63);
+                    if (langsStr.includes('sql')) allowedLanguages.push(82);
                 }
 
                 if (title) {

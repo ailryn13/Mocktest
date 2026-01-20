@@ -9,6 +9,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * Database Initializer
  * 
@@ -22,12 +24,18 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.examportal.repository.StudentAttemptRepository attemptRepository;
+    private final com.examportal.repository.TestRepository testRepository;
 
     public DatabaseInitializer(RoleRepository roleRepository, UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            com.examportal.repository.StudentAttemptRepository attemptRepository,
+            com.examportal.repository.TestRepository testRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.attemptRepository = attemptRepository;
+        this.testRepository = testRepository;
     }
 
     @Override
@@ -36,6 +44,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         initializeRoles();
         initializeModeratorUser();
         initializeTestStudent();
+        resetSampleTests();
         log.info("Database initialization complete!");
     }
 
@@ -131,6 +140,30 @@ public class DatabaseInitializer implements CommandLineRunner {
 
             userRepository.save(student);
             log.info("Created test student - Email: {}, Password: student123", studentEmail);
+        }
+    }
+
+    private void resetSampleTests() {
+        log.info("Checking for sample tests to unlock...");
+        try {
+            java.util.List<Long> sampleTestIds = testRepository.findAll().stream()
+                    .filter(test -> test.getTitle().toLowerCase().contains("sample"))
+                    .map(com.examportal.entity.Test::getId)
+                    .collect(java.util.stream.Collectors.toList());
+
+            if (!sampleTestIds.isEmpty()) {
+                log.warn("Found {} sample tests. Clearing all existing attempts to unlock.", sampleTestIds.size());
+                for (Long testId : sampleTestIds) {
+                    java.util.List<com.examportal.entity.StudentAttempt> attempts = attemptRepository
+                            .findByTestId(testId);
+                    if (!attempts.isEmpty()) {
+                        attemptRepository.deleteAll(attempts);
+                        log.info("Deleted {} attempts for sample test ID: {}", attempts.size(), testId);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to reset sample tests: {}", e.getMessage());
         }
     }
 }

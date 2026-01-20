@@ -51,18 +51,18 @@ export default function TestReviewPage() {
     });
 
     return (
-        <div className="min-h-screen bg-gray-900 p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+        <div className="min-h-screen bg-slate-950 p-8 text-slate-200">
+            <div className="max-w-4xl mx-auto relative z-10">
+                <div className="prof-panel p-8 mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-white mb-2">Test Review: {review?.test?.title || "Test Review"}</h1>
-                        <p className="text-gray-400">Section-based performance analysis</p>
+                        <h1 className="text-3xl font-bold text-white mb-2">{review?.test?.title || "Assessment Review"}</h1>
+                        <p className="text-slate-400 text-sm">Detailed performance analysis and feedback</p>
                     </div>
                     <button
-                        onClick={() => navigate('/student/history')}
-                        className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                        onClick={() => navigate('/student/tests')}
+                        className="btn-secondary px-6"
                     >
-                        Back to History
+                        Back to Home
                     </button>
                 </div>
 
@@ -70,65 +70,73 @@ export default function TestReviewPage() {
                     {Object.entries(groupedQuestions).map(([section, questions]) => (
                         <div key={section} className="space-y-6">
                             <div className="flex items-center gap-4">
-                                <h2 className="text-xl font-bold text-blue-400 uppercase tracking-widest">{section}</h2>
-                                <div className="h-px bg-gray-700 flex-1"></div>
+                                <h2 className="text-sm font-bold text-indigo-400 uppercase tracking-[0.2em]">{section}</h2>
+                                <div className="h-px bg-white/5 flex-1"></div>
                             </div>
 
                             <div className="space-y-6">
                                 {questions.map((q, idx) => (
-                                    <div key={idx} className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-sm">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-gray-500 font-mono text-sm">Q{idx + 1}</span>
-                                                <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold text-white ${q.question.type === 'MCQ' ? 'bg-purple-600' : 'bg-blue-600'
+                                    <div key={idx} className="prof-card p-6 border-l-4 border-l-indigo-500/50">
+                                        <div className="flex justify-between items-start mb-6">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-slate-500 font-bold text-xs">#{idx + 1}</span>
+                                                <span className={`px-2.5 py-0.5 rounded text-[10px] uppercase font-black tracking-widest text-white ${q.question.type === 'MCQ' ? 'bg-indigo-600' : 'bg-blue-600'
                                                     }`}>
                                                     {q.question.type}
                                                 </span>
                                             </div>
-                                            <div className="bg-gray-900 px-3 py-1 rounded-lg border border-gray-700">
-                                                <span className="text-gray-400 text-xs mr-2">Marks:</span>
-                                                <span className={`font-bold ${q.correct ? 'text-green-400' : 'text-red-400'}`}>
-                                                    {q.correct ? q.marks : 0} / {q.marks}
+                                            <div className="bg-slate-900 px-4 py-1.5 rounded border border-white/5">
+                                                <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mr-3">Performance</span>
+                                                <span className={`font-mono font-bold ${q.correct ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                    {q.correct ? q.marks : 0} <span className="text-slate-600">/</span> {q.marks}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <p className="text-white text-lg mb-6 leading-relaxed">
+                                        <p className="text-white text-lg mb-8 leading-relaxed font-medium">
                                             {q.question.questionText}
                                         </p>
 
                                         {q.question.type === 'MCQ' ? (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {['A', 'B', 'C', 'D'].map(opt => (
                                                     <div
                                                         key={opt}
-                                                        className={`p-3 rounded-lg border text-sm flex items-center justify-between ${opt === q.correctAnswer
-                                                            ? 'border-green-500 bg-green-900 bg-opacity-20 text-green-100'
+                                                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between ${opt === q.correctAnswer
+                                                            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-100'
                                                             : opt === q.studentAnswer && !q.correct
-                                                                ? 'border-red-500 bg-red-900 bg-opacity-20 text-red-100'
-                                                                : 'border-gray-700 bg-gray-750 text-gray-400'
+                                                                ? 'border-rose-500/50 bg-rose-500/10 text-rose-100'
+                                                                : 'border-white/5 bg-slate-900/50 text-slate-400'
                                                             }`}
                                                     >
-                                                        <span>
-                                                            <strong className="mr-2">{opt}.</strong>
+                                                        <span className="text-sm font-medium">
+                                                            <strong className="mr-3 text-xs opacity-50">{opt}.</strong>
                                                             {q.question[`option${opt}`]}
                                                         </span>
-                                                        {opt === q.correctAnswer && <span className="text-green-400">✓</span>}
-                                                        {opt === q.studentAnswer && !q.correct && <span className="text-red-400">✗</span>}
+                                                        {opt === q.correctAnswer && (
+                                                            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                                                                <span className="text-white text-xs font-bold">✓</span>
+                                                            </div>
+                                                        )}
+                                                        {opt === q.studentAnswer && !q.correct && (
+                                                            <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center">
+                                                                <span className="text-white text-xs font-bold">✗</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
-                                                <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto border border-gray-700">
-                                                    <label className="text-gray-500 text-[10px] uppercase mb-2 block">Your Code</label>
-                                                    <pre className="text-gray-200">{q.studentAnswer || '// No code submitted'}</pre>
+                                                <div className="bg-slate-950 rounded-xl p-4 font-mono text-xs overflow-x-auto border border-white/5">
+                                                    <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-3 block">Submitted Logic</label>
+                                                    <pre className="text-indigo-300 leading-relaxed">{q.studentAnswer || '// No content provided'}</pre>
                                                 </div>
                                                 {q.executionResult && (
-                                                    <div className="bg-gray-950 rounded-lg p-4 border border-gray-800">
-                                                        <label className="text-gray-500 text-[10px] uppercase mb-2 block">Execution Result</label>
-                                                        <pre className="text-green-400 text-xs whitespace-pre-wrap">
-                                                            {q.executionResult.stdout || q.executionResult.stderr || 'No output'}
+                                                    <div className="bg-slate-900 rounded-xl p-4 border border-white/5">
+                                                        <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-3 block">System Telemetry</label>
+                                                        <pre className="text-emerald-400 text-[10px] whitespace-pre-wrap leading-tight">
+                                                            {q.executionResult.stdout || q.executionResult.stderr || 'Status: Handled'}
                                                         </pre>
                                                     </div>
                                                 )}
@@ -136,9 +144,9 @@ export default function TestReviewPage() {
                                         )}
 
                                         {q.explanation && (
-                                            <div className="mt-8 p-4 bg-blue-900 bg-opacity-10 border-l-4 border-blue-500 rounded-r-lg">
-                                                <h4 className="text-blue-400 font-bold text-sm uppercase mb-2">Explanation</h4>
-                                                <p className="text-gray-300 text-sm italic">{q.explanation}</p>
+                                            <div className="mt-8 p-5 bg-indigo-500/5 border-l-4 border-l-indigo-500 rounded-r-xl">
+                                                <h4 className="text-indigo-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-3">Expert Explanation</h4>
+                                                <p className="text-slate-400 text-sm leading-relaxed">{q.explanation}</p>
                                             </div>
                                         )}
                                     </div>
