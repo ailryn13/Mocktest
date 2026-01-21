@@ -39,8 +39,9 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
                 // Load face-api.js models from CDN
                 const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
-                if (!faceapi.nets.tinyFaceDetector.isLoaded) {
-                    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                if (!faceapi.nets.ssdMobilenetv1.isLoaded) {
+                    console.log('Loading SSD Mobilenet detector...');
+                    await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
                 }
 
                 // Load Face Landmark model for Head Rotation/Gaze
@@ -132,13 +133,10 @@ export const useAIProctoring = (attemptId, isActive = true, onCriticalViolation 
 
         const runDetection = async () => {
             try {
-                // Face detection with landmarks (lowered threshold for better detection)
+                // Face detection with SSD Mobilenet (High Accuracy)
                 const faceDetections = await faceapi.detectAllFaces(
                     videoRef.current,
-                    new faceapi.TinyFaceDetectorOptions({
-                        inputSize: 416,        // Higher resolution for better accuracy
-                        scoreThreshold: 0.3    // Lower threshold (default is 0.5) to detect more faces
-                    })
+                    new faceapi.SsdMobilenetv1Options({ minConfidence: 0.35 })
                 ).withFaceLandmarks(true);  // Enable landmarks
 
                 const currentFaceCount = faceDetections.length;

@@ -144,7 +144,7 @@ function TestHistoryCard({ attempt, index }) {
                 <div className="flex items-center gap-8 min-w-max">
                     {attempt.totalMarks > 0 && (
                         <div className={`flex flex-col items-center justify-center w-24 h-24 rounded-full border-2 ${getScoreStyle()}`}>
-                            <div className="text-lg font-bold">{attempt.score.toFixed(1)}</div>
+                            <div className="text-lg font-bold">{(attempt.score ?? 0).toFixed(1)}</div>
                             <div className="text-[8px] font-black uppercase tracking-tighter opacity-60">of {attempt.totalMarks}</div>
                             <div className="text-xs font-black mt-1">{percentage.toFixed(0)}%</div>
                         </div>

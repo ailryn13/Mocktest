@@ -29,7 +29,7 @@ export default function WebcamPreview({ videoRef, faceCount, detectedObjects, mo
                         autoPlay
                         muted
                         playsInline
-                        className="w-56 h-40 object-cover grayscale opacity-80"
+                        className="w-56 h-40 object-cover"
                     />
 
                     {/* Status Overlay */}
@@ -40,11 +40,11 @@ export default function WebcamPreview({ videoRef, faceCount, detectedObjects, mo
                             {modelsLoaded ? 'AI ACTIVE' : 'SYSTEM IDLE'}
                         </div>
 
-                        {/* Face Count */}
-                        <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter ${faceCount === 1 ? 'bg-indigo-600' :
-                            faceCount === 0 ? 'bg-rose-600' : 'bg-amber-600'
+                        {/* Face Count Status */}
+                        <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter ${faceCount === 1 ? 'bg-emerald-600' :
+                            faceCount === 0 ? 'bg-rose-600/50' : 'bg-amber-600'
                             } text-white shadow-lg`}>
-                            {faceCount === 0 ? 'NO SIGNAL' :
+                            {faceCount === 0 ? 'FACE NOT FOUND' :
                                 faceCount === 1 ? 'LOCKED' :
                                     'MULTIPLE'}
                         </div>

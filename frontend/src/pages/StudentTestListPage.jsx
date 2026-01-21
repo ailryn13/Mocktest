@@ -12,6 +12,7 @@ export default function StudentTestListPage() {
     const [completedTestIds, setCompletedTestIds] = useState(new Set());
     const [inProgressTestIds, setInProgressTestIds] = useState(new Set());
     const [attemptMapping, setAttemptMapping] = useState({});
+    const [completedTests, setCompletedTests] = useState([]);
     const [activeTab, setActiveTab] = useState('ongoing');
 
     useEffect(() => {
@@ -37,9 +38,28 @@ export default function StudentTestListPage() {
                 attemptMap[a.testId] = a.id;
             });
 
+            // Build complete test objects for completed tests
+            const completedAttempts = data.filter(a => a.status === 'SUBMITTED' || a.status === 'FROZEN');
+            const completedTestObjects = completedAttempts.map(attempt => ({
+                id: attempt.testId,
+                title: attempt.testTitle,
+                type: 'CODING', // Default, will be updated if we fetch full test details
+                durationMinutes: attempt.durationMinutes || 0,
+                startDateTime: attempt.startedAt,
+                endDateTime: attempt.testEndDate,
+                description: '',
+                status: 'PUBLISHED',
+                // Store attempt info for easy access
+                attemptStatus: attempt.status,
+                attemptId: attempt.id,
+                score: attempt.score,
+                totalMarks: attempt.totalMarks
+            }));
+
             setCompletedTestIds(completed);
             setInProgressTestIds(inProgress);
             setAttemptMapping(attemptMap);
+            setCompletedTests(completedTestObjects);
         } catch (error) {
             console.error('Failed to fetch history:', error);
         }
@@ -135,7 +155,7 @@ export default function StudentTestListPage() {
                             : 'bg-transparent border-white/5 text-slate-500 hover:border-white/20'
                             }`}
                     >
-                        Completed ({completed.length})
+                        Completed ({completedTests.length})
                     </button>
                 </div>
 
@@ -175,9 +195,9 @@ export default function StudentTestListPage() {
                                 <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                                 Past Successes
                             </h2>
-                            {completed.length > 0 ? (
+                            {completedTests.length > 0 ? (
                                 <div className="space-y-6">
-                                    {completed.map((test) => (
+                                    {completedTests.map((test) => (
                                         <TestCard
                                             key={test.id}
                                             test={test}
@@ -185,7 +205,7 @@ export default function StudentTestListPage() {
                                             navigate={navigate}
                                             isCompleted={true}
                                             isInProgress={false}
-                                            attemptId={attemptMapping[test.id]}
+                                            attemptId={test.attemptId}
                                         />
                                     ))}
                                 </div>
