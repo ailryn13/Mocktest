@@ -133,20 +133,27 @@ export const parseSmartPaste = (text) => {
             } else if (line.match(/^Input:/i)) {
                 const val = line.replace(/^Input:/i, '').trim();
                 currentQ.testCases.push({ input: val, output: '' });
-                currentQ._mode = null;
+                currentQ._mode = val ? null : 'INPUT';
             } else if (line.match(/^Output:/i)) {
                 const val = line.replace(/^Output:/i, '').trim();
                 if (currentQ.testCases.length > 0) {
                     currentQ.testCases[currentQ.testCases.length - 1].output = val;
                 }
-                currentQ._mode = null;
+                currentQ._mode = val ? null : 'OUTPUT';
             } else if (line.match(/^(?:Logic|Constraints):/i)) {
                 const val = line.split(':')[1];
                 currentQ.constraints = parseConstraints(val);
                 currentQ._mode = null;
             } else {
                 // Continuation
-                if (currentQ._mode === 'DESC' || (!currentQ.testCases.length && !currentQ.allowedLanguages.length)) {
+                if (currentQ._mode === 'DESC') {
+                    currentQ.description += (currentQ.description ? '\n' : '') + line;
+                } else if (currentQ._mode === 'INPUT' && currentQ.testCases.length > 0) {
+                    currentQ.testCases[currentQ.testCases.length - 1].input += line;
+                } else if (currentQ._mode === 'OUTPUT' && currentQ.testCases.length > 0) {
+                    currentQ.testCases[currentQ.testCases.length - 1].output += line;
+                } else if (!currentQ.testCases.length && !currentQ.allowedLanguages.length) {
+                    // Implicit description at the start
                     currentQ.description += (currentQ.description ? '\n' : '') + line;
                 }
             }

@@ -1,12 +1,14 @@
 package com.examportal.security;
 
 import com.examportal.entity.User;
+import com.examportal.entity.UserRole;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
@@ -54,7 +56,11 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.user.getUserRoles().stream()
+        Set<UserRole> roles = this.user.getUserRoles();
+        if (roles == null) {
+            return java.util.Collections.emptyList();
+        }
+        return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRole().getRoleName()))
                 .collect(Collectors.toList());
     }
