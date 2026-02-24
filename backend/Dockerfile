@@ -1,5 +1,5 @@
 # Multi-stage build for Spring Boot
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN mvn clean package -DskipTests
 # ============================================
 # Production image
 # ============================================
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Install curl for healthcheck
 RUN apk add --no-cache curl
@@ -34,6 +34,10 @@ COPY --from=builder /app/target/*.jar app.jar
 
 # Expose port
 EXPOSE 8080
+
+# Environment variables
+ENV SPRING_PROFILES_ACTIVE=cloud
+ENV PORT=8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

@@ -3,6 +3,7 @@ package com.examportal.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
@@ -14,9 +15,10 @@ import java.util.Map;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+@Filter(name = "departmentFilter", condition = "department = :dept OR department = 'General' OR department IS NULL")
 public class Question {
 
     @Id

@@ -468,8 +468,8 @@ public class QuestionService {
         question.setExplanation(dto.getExplanation());
         // Department is set in createQuestion
 
-        if (dto instanceof com.examportal.dto.MCQQuestionDTO) {
-            com.examportal.dto.MCQQuestionDTO mcq = (com.examportal.dto.MCQQuestionDTO) dto;
+        if (dto instanceof MCQQuestionDTO) {
+            MCQQuestionDTO mcq = (MCQQuestionDTO) dto;
             question.setOptionA(mcq.getOptionA());
             question.setOptionB(mcq.getOptionB());
             question.setOptionC(mcq.getOptionC());

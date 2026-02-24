@@ -36,7 +36,7 @@ export function useWebSocket(sessionId, examId) {
 
     client.onConnect = () => {
       console.log('🟢 WebSocket connected')
-      
+
       // Subscribe to personal messages
       client.subscribe('/user/queue/messages', (message) => {
         const notification = JSON.parse(message.body)
@@ -106,7 +106,7 @@ export function useWebSocket(sessionId, examId) {
     if (notification.type === 'termination') {
       const payload = notification.payload
       terminate(payload.reason)
-      
+
       toast.error(`Exam terminated: ${payload.reason}`, {
         duration: Infinity,
       })
@@ -122,7 +122,7 @@ export function useWebSocket(sessionId, examId) {
 
   const handleMonitoringUpdate = (update) => {
     console.log('📡 Monitoring update:', update)
-    
+
     if (update.type === 'violation_alert') {
       // Could show notification to student
       // toast.warning('Violation detected')

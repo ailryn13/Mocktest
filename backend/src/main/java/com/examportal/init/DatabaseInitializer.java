@@ -3,8 +3,12 @@ package com.examportal.init;
 import com.examportal.entity.Role;
 import com.examportal.entity.User;
 import com.examportal.entity.UserRole;
+import com.examportal.entity.Test;
+import com.examportal.entity.StudentAttempt;
 import com.examportal.repository.RoleRepository;
 import com.examportal.repository.UserRepository;
+import com.examportal.repository.StudentAttemptRepository;
+import com.examportal.repository.TestRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -22,13 +26,13 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final com.examportal.repository.StudentAttemptRepository attemptRepository;
-    private final com.examportal.repository.TestRepository testRepository;
+    private final StudentAttemptRepository attemptRepository;
+    private final TestRepository testRepository;
 
     public DatabaseInitializer(RoleRepository roleRepository, UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            com.examportal.repository.StudentAttemptRepository attemptRepository,
-            com.examportal.repository.TestRepository testRepository) {
+            StudentAttemptRepository attemptRepository,
+            TestRepository testRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -146,13 +150,13 @@ public class DatabaseInitializer implements CommandLineRunner {
         try {
             java.util.List<Long> sampleTestIds = testRepository.findAll().stream()
                     .filter(test -> test.getTitle().toLowerCase().contains("sample"))
-                    .map(com.examportal.entity.Test::getId)
+                    .map(Test::getId)
                     .collect(java.util.stream.Collectors.toList());
 
             if (!sampleTestIds.isEmpty()) {
                 log.warn("Found {} sample tests. Clearing all existing attempts to unlock.", sampleTestIds.size());
                 for (Long testId : sampleTestIds) {
-                    java.util.List<com.examportal.entity.StudentAttempt> attempts = attemptRepository
+                    java.util.List<StudentAttempt> attempts = attemptRepository
                             .findByTestId(testId);
                     if (!attempts.isEmpty()) {
                         attemptRepository.deleteAll(attempts);

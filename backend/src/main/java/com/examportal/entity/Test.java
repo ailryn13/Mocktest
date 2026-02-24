@@ -2,6 +2,9 @@ package com.examportal.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +16,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FilterDef(name = "departmentFilter", parameters = @ParamDef(name = "dept", type = String.class))
+@Filter(name = "departmentFilter", condition = "department = :dept OR department = 'General'")
 public class Test {
 
     @Id

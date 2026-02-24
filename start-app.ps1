@@ -10,6 +10,15 @@ function Write-Error { param($msg) Write-Host $msg -ForegroundColor Red }
 Clear-Host
 Write-Info "Starting Exam Portal Application..."
 
+# Fix for Docker not in PATH
+if (-not (Get-Command "docker" -ErrorAction SilentlyContinue)) {
+    $dockerPath = "C:\Program Files\Docker\Docker\resources\bin"
+    if (Test-Path "$dockerPath\docker.exe") {
+        Write-Warning "Docker found at $dockerPath but not in PATH. Adding it temporarily..."
+        $env:Path = "$dockerPath;$env:Path"
+    }
+}
+
 # Step 1: Check Docker
 Write-Info "Checking Docker..."
 try {
@@ -48,6 +57,30 @@ if ($LASTEXITCODE -ne 0) {
 $ErrorActionPreference = $oldPreference
 Write-Success "Backend containers started/checked"
 
+if (Test-NetConnection -ComputerName localhost -Port 9090 -InformationLevel Quiet) {
+    Write-Info "Backend appears to be already running on port 9090."
+}
+else {
+    # Step 2.5: Start Backend Application (Local)
+    Write-Info "Starting Backend JAR..."
+    if (Test-Path "$PSScriptRoot\backend\app.jar") {
+        $backendJar = "app.jar"
+        try {
+            # Start in a new window so logs are visible (or minimized)
+            Start-Process "java" -ArgumentList "-jar", "$backendJar", "--server.port=9090" -WorkingDirectory "$PSScriptRoot\backend"
+            Write-Success "Backend JAR launched on port 9090."
+        }
+        catch {
+            Write-Error "Failed to start backend JAR"
+            exit 1
+        }
+    }
+    else {
+        Write-Error "backend/app.jar not found! Please build the project."
+        exit 1
+    }
+}
+
 # Step 3: Wait for Backend
 Write-Info "Waiting for backend to be ready..."
 $maxAttempts = 60
@@ -57,7 +90,7 @@ $backendReady = $false
 while ($attempt -lt $maxAttempts -and -not $backendReady) {
     $attempt++
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:8080/actuator/health" -TimeoutSec 2 -ErrorAction Stop
+        $response = Invoke-WebRequest -Uri "http://localhost:9090/actuator/health" -TimeoutSec 2 -ErrorAction Stop -UseBasicParsing
         if ($response.StatusCode -eq 200) {
             $backendReady = $true
         }
@@ -82,6 +115,16 @@ else {
 
 # Step 4: Start Frontend
 Write-Info "Starting frontend..."
+
+# Fix for npm not in PATH
+if (-not (Get-Command "npm" -ErrorAction SilentlyContinue)) {
+    $nodePath = "C:\Program Files\nodejs"
+    if (Test-Path "$nodePath\npm.cmd") {
+        Write-Warning "Node.js found at $nodePath but not in PATH. Adding it temporarily..."
+        $env:Path = "$nodePath;$env:Path"
+    }
+}
+
 if (Test-Path "$PSScriptRoot\frontend") {
     Set-Location "$PSScriptRoot\frontend"
 }
@@ -108,7 +151,7 @@ Start-Sleep -Seconds 2
 Clear-Host
 Write-Success "Application Started!"
 Write-Info "Frontend: http://localhost:3001"
-Write-Info "Backend: http://localhost:8080"
+Write-Info "Backend: http://localhost:9090"
 
 Write-Warning "Opening browser..."
 Start-Sleep -Seconds 2

@@ -61,29 +61,39 @@ public class AuthController {
         public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
                 org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthController.class);
                 log.info("LOGIN ATTEMPT: {}", loginRequest.getEmail());
-                Authentication authentication = authenticationManager.authenticate(
-                                new UsernamePasswordAuthenticationToken(
-                                                loginRequest.getEmail(),
-                                                loginRequest.getPassword()));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                String jwt = tokenProvider.generateToken(authentication);
+                try {
+                        Authentication authentication = authenticationManager.authenticate(
+                                        new UsernamePasswordAuthenticationToken(
+                                                        loginRequest.getEmail(),
+                                                        loginRequest.getPassword()));
 
-                com.examportal.security.CustomUserDetails userDetails = (com.examportal.security.CustomUserDetails) authentication
-                                .getPrincipal();
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        String jwt = tokenProvider.generateToken(authentication);
 
-                List<String> roles = userDetails.getAuthorities().stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.toList());
+                        com.examportal.security.CustomUserDetails userDetails = (com.examportal.security.CustomUserDetails) authentication
+                                        .getPrincipal();
 
-                return ResponseEntity.ok(JwtResponse.builder()
-                                .token(jwt)
-                                .userId(userDetails.getId())
-                                .email(userDetails.getEmail())
-                                .fullName(userDetails.getFullName())
-                                .department(userDetails.getDepartment())
-                                .roles(roles)
-                                .build());
+                        List<String> roles = userDetails.getAuthorities().stream()
+                                        .map(GrantedAuthority::getAuthority)
+                                        .collect(Collectors.toList());
+
+                        return ResponseEntity.ok(JwtResponse.builder()
+                                        .token(jwt)
+                                        .userId(userDetails.getId())
+                                        .email(userDetails.getEmail())
+                                        .fullName(userDetails.getFullName())
+                                        .department(userDetails.getDepartment())
+                                        .roles(roles)
+                                        .build());
+                } catch (org.springframework.security.authentication.BadCredentialsException e) {
+                        log.error("Login failed: Bad credentials for {}", loginRequest.getEmail());
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+                } catch (Exception e) {
+                        log.error("Login failed: Exception for {}", loginRequest.getEmail(), e);
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body("Login failed: " + e.getMessage());
+                }
         }
 
         /**

@@ -35,7 +35,7 @@ export function useModeratorWebSocket(examId) {
 
     client.onConnect = () => {
       console.log('🟢 Moderator WebSocket connected')
-      
+
       // Subscribe to exam monitoring
       client.subscribe(`/topic/exam/${examId}/monitoring`, (message) => {
         const update = JSON.parse(message.body)
@@ -93,14 +93,14 @@ export function useModeratorWebSocket(examId) {
         // New violation
         const violation = update.payload
         addViolation(violation)
-        
+
         // Update student violation count
         updateStudent(violation.studentId, {
           violationCount: (violation.totalStrikes || 0),
-          statusColor: violation.totalStrikes >= 4 ? 'RED' : 
-                       violation.totalStrikes >= 2 ? 'YELLOW' : 'GREEN',
+          statusColor: violation.totalStrikes >= 4 ? 'RED' :
+            violation.totalStrikes >= 2 ? 'YELLOW' : 'GREEN',
         })
-        
+
         toast.error(
           `${violation.studentName}: ${violation.violationType}`,
           { icon: '⚠️', duration: 5000 }
@@ -114,7 +114,7 @@ export function useModeratorWebSocket(examId) {
           activityStatus: 'TERMINATED',
           statusColor: 'RED',
         })
-        
+
         toast.error(
           `${termination.studentName} terminated: ${termination.reason}`,
           { icon: '🚫', duration: 8000 }

@@ -6,7 +6,12 @@ import com.examportal.dto.MCQQuestionDTO;
 import com.examportal.dto.QuestionDTO;
 import com.examportal.dto.TestDTO;
 import com.examportal.dto.TestQuestionDTO;
-import com.examportal.entity.*;
+import com.examportal.entity.Test;
+import com.examportal.entity.Question;
+import com.examportal.entity.QuestionType;
+import com.examportal.entity.TestQuestion;
+import com.examportal.entity.TestType;
+import com.examportal.entity.TestStatus;
 import com.examportal.repository.QuestionRepository;
 import com.examportal.repository.TestRepository;
 import com.examportal.security.DepartmentSecurityService;
@@ -83,8 +88,9 @@ public class TestService {
     }
 
     public List<TestDTO> getTestsForModerator() {
-        String department = departmentSecurityService.getCurrentUserDepartment();
-        List<Test> tests = testRepository.findByDepartmentIn(java.util.List.of(department, "General"));
+        // Global Hibernate filter (RlsAspect) automatically restricts
+        // results to the moderator's department. No manual filtering needed.
+        List<Test> tests = testRepository.findAll();
         return tests.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -264,11 +270,11 @@ public class TestService {
     }
 
     public List<TestDTO> getAvailableTestsForStudent() {
-        String department = departmentSecurityService.getCurrentUserDepartment();
         LocalDateTime now = LocalDateTime.now();
-
-        // Fetch tests that haven't ended yet for the student's department and General
-        // department
+        // Note: Global filter is NOT applied for STUDENT role (by design in RlsAspect).
+        // Students can see tests from their department AND General department.
+        // We filter via student's department explicitly here.
+        String department = departmentSecurityService.getCurrentUserDepartment();
         List<Test> tests = testRepository.findByDepartmentInAndEndDateTimeAfterOrderByStartDateTimeAsc(
                 java.util.List.of(department, "General"), now);
 

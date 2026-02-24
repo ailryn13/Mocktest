@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -45,7 +46,7 @@ public class CodeVerificationService {
         };
     }
 
-    private CodeVerificationResult verifyJavaCode(String code, java.util.Map<String, Boolean> constraints) {
+    private CodeVerificationResult verifyJavaCode(String code, Map<String, Boolean> constraints) {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 

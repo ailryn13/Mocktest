@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/exam-portal-backend:latest
+    ports:
+      - "80:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod,cloud
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:5432/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=${REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - SPRING_RABBITMQ_HOST=${RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=5671 # SSL port
+      - SPRING_RABBITMQ_USERNAME=${RABBITMQ_USER}
+      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - MINIO_ENDPOINT=${S3_ENDPOINT}
+      - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
+      - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/exam-portal-backend
+        awslogs-region: ${AWS_REGION}
+        awslogs-stream-prefix: ecs
+
+  # Frontend Service
+  frontend:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/exam-portal-frontend:latest
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=https://api.yourdomain.com/api/v1
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/exam-portal-frontend
+        awslogs-region: ${AWS_REGION}
+        awslogs-stream-prefix: ecs

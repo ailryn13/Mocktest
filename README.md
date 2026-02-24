@@ -66,7 +66,7 @@ mock test/
 
 After starting:
 - **Application**: http://localhost:3001
-- **Backend API**: http://localhost:8080
+- **Backend API**: http://localhost:9090
 - **RabbitMQ Admin**: http://localhost:15672 (user: exam_user, pass: exam_password)
 
 ---

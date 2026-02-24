@@ -5,7 +5,7 @@
 ### 1. Student Reports Violation
 ```javascript
 // Student detected tab switch via frontend monitoring
-const response = await fetch('http://localhost:8080/api/violations/report', {
+const response = await fetch('http://localhost:9090/api/violations/report', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer ' + studentJWT,
@@ -35,7 +35,7 @@ console.log(result);
 
 ### 2. Check Current Strike Count
 ```javascript
-const response = await fetch('http://localhost:8080/api/violations/session/123/strikes', {
+const response = await fetch('http://localhost:9090/api/violations/session/123/strikes', {
   headers: { 'Authorization': 'Bearer ' + jwt }
 });
 
@@ -50,7 +50,7 @@ console.log(strikes);
 
 ### 3. Moderator Views Session Violations
 ```javascript
-const response = await fetch('http://localhost:8080/api/violations/session/123', {
+const response = await fetch('http://localhost:9090/api/violations/session/123', {
   headers: { 'Authorization': 'Bearer ' + moderatorJWT }
 });
 
@@ -414,7 +414,7 @@ ORDER BY detected_at DESC;
 
 ```bash
 # 1. Report violation
-curl -X POST http://localhost:8080/api/violations/report \
+curl -X POST http://localhost:9090/api/violations/report \
   -H "Authorization: Bearer $JWT" \
   -H "Content-Type: application/json" \
   -d '{
@@ -427,11 +427,11 @@ curl -X POST http://localhost:8080/api/violations/report \
   }'
 
 # 2. Get strike count
-curl http://localhost:8080/api/violations/session/123/strikes \
+curl http://localhost:9090/api/violations/session/123/strikes \
   -H "Authorization: Bearer $JWT"
 
 # 3. Get violations
-curl http://localhost:8080/api/violations/session/123 \
+curl http://localhost:9090/api/violations/session/123 \
   -H "Authorization: Bearer $MODERATOR_JWT"
 
 # 4. Verify Redis

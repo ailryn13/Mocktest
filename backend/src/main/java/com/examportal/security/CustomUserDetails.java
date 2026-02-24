@@ -61,6 +61,7 @@ public class CustomUserDetails implements UserDetails {
             return java.util.Collections.emptyList();
         }
         return roles.stream()
+                .filter(ur -> ur.getRole() != null && ur.getRole().getRoleName() != null)
                 .map(role -> new SimpleGrantedAuthority(role.getRole().getRoleName()))
                 .collect(Collectors.toList());
     }

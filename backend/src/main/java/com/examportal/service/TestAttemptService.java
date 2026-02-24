@@ -1,7 +1,12 @@
 package com.examportal.service;
 
 import com.examportal.dto.AnswerSubmissionDTO;
-import com.examportal.entity.*;
+import com.examportal.entity.Test;
+import com.examportal.entity.Question;
+import com.examportal.entity.StudentAttempt;
+import com.examportal.entity.TestQuestion;
+import com.examportal.entity.AttemptStatus;
+import com.examportal.entity.QuestionType;
 import com.examportal.execution.model.ExecutionResult;
 import com.examportal.repository.QuestionRepository;
 import com.examportal.repository.StudentAttemptRepository;
