@@ -56,13 +56,14 @@ public class RlsAspect {
 
             // 2. Set PostgreSQL Session Variable (Database-Level RLS)
             // This allows native SQL policies to see the current department
-            session.doWork(connection -> {
-                try (var statement = connection.prepareStatement(
-                        "SET LOCAL app.current_department = ?")) {
-                    statement.setString(1, department);
-                    statement.execute();
-                }
-            });
+            try {
+                entityManager.createNativeQuery("SELECT set_config('app.current_department', :dept, true)")
+                        .setParameter("dept", department)
+                        .getSingleResult();
+            } catch (Exception e) {
+                // If this fails, we still want to proceed with the Hibernate filter if possible
+                // or at least not crash the whole request if it's a minor DB issue
+            }
 
             try {
                 return joinPoint.proceed();

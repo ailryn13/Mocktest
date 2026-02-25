@@ -41,12 +41,14 @@ export default function LoginPage() {
         localStorage.removeItem('rememberMe')
       }
 
-      const primaryRole = roles && roles.length > 0 ? roles[0] : 'STUDENT'
+      const rawRoles = roles && roles.length > 0 ? roles : ['STUDENT']
+      const normalizedRoles = rawRoles.map(r => r.replace('ROLE_', ''))
+      const primaryRole = normalizedRoles[0]
 
       const user = {
         name: fullName || email,
         role: primaryRole,
-        roles: roles,
+        roles: normalizedRoles,
         ...userData
       }
 
