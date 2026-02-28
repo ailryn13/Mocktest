@@ -13,6 +13,9 @@ public interface ExamService {
 
     List<ExamResponse> getActiveExams();
 
+    /** Active exams visible to a specific student (filtered by department). */
+    List<ExamResponse> getActiveExamsForStudent(String studentEmail);
+
     ExamResponse getById(Long id);
 
     ExamResponse update(Long id, ExamRequest request, String mediatorEmail);

@@ -8,6 +8,7 @@ import com.mocktest.models.*;
 import com.mocktest.models.enums.QuestionType;
 import com.mocktest.models.enums.Role;
 import com.mocktest.repositories.*;
+import com.mocktest.service.CodeExecutionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,9 @@ class SubmissionServiceImplTest {
 
     @Mock
     private QuestionRepository questionRepository;
+
+    @Mock
+    private CodeExecutionService codeExecutionService;
 
     @InjectMocks
     private SubmissionServiceImpl submissionService;

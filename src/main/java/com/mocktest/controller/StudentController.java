@@ -50,8 +50,8 @@ public class StudentController {
     /* ---- Exam Discovery ---- */
 
     @GetMapping("/exams/active")
-    public ResponseEntity<List<ExamResponse>> getActiveExams() {
-        return ResponseEntity.ok(examService.getActiveExams());
+    public ResponseEntity<List<ExamResponse>> getActiveExams(Authentication auth) {
+        return ResponseEntity.ok(examService.getActiveExamsForStudent(auth.getName()));
     }
 
     @GetMapping("/exams/{examId}")

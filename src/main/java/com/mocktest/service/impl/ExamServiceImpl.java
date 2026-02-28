@@ -55,6 +55,19 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    public List<ExamResponse> getActiveExamsForStudent(String studentEmail) {
+        User student = findUserByEmail(studentEmail);
+        Long deptId = student.getDepartment() != null ? student.getDepartment().getId() : null;
+        if (deptId == null) {
+            return List.of(); // student without department sees no exams
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return examRepository
+                .findByStartTimeBeforeAndEndTimeAfterAndMediatorDepartmentId(now, now, deptId)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
     public ExamResponse getById(Long id) {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found: " + id));

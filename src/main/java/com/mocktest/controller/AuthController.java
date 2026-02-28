@@ -9,8 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Public endpoints for authentication (login & register).
- * No JWT required – permitted for all via SecurityConfig.
+ * Public endpoint for login.  Registration is handled by admin/mediator controllers.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -25,10 +24,5 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
     }
 }

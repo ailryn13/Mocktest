@@ -83,4 +83,16 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         return "User registered successfully";
     }
+
+    @Override
+    public String registerMediator(RegisterRequest request) {
+        request.setRole("MEDIATOR");
+        return register(request);
+    }
+
+    @Override
+    public String registerStudent(RegisterRequest request) {
+        request.setRole("STUDENT");
+        return register(request);
+    }
 }
