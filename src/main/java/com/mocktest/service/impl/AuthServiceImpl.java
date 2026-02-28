@@ -18,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@SuppressWarnings("null")
 public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authManager;

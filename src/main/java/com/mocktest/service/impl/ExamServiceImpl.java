@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@SuppressWarnings("null")
 public class ExamServiceImpl implements ExamService {
 
     private final ExamRepository examRepository;

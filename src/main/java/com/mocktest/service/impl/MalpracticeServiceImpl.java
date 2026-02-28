@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
  * Records proctoring violations and enforces the auto-lock threshold.
  */
 @Service
-@SuppressWarnings("null")
 public class MalpracticeServiceImpl implements MalpracticeService {
 
     private final MalpracticeLogRepository malpracticeLogRepository;

@@ -25,7 +25,6 @@ import java.util.Map;
  * Configure via {@code app.judge0.*} properties.
  */
 @Service
-@SuppressWarnings("null")
 public class Judge0CodeExecutionService implements CodeExecutionService {
 
     private final String apiUrl;
