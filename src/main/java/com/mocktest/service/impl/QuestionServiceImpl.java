@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class QuestionServiceImpl implements QuestionService {
 
     private final QuestionRepository questionRepository;

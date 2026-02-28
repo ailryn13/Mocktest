@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * delegate to a sandboxed code-execution engine (e.g. Judge0).
  */
 @Service
+@SuppressWarnings("null")
 public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
