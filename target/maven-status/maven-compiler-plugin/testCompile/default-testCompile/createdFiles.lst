@@ -1,0 +1,8 @@
+com\mocktest\service\impl\AuthServiceImplTest.class
+com\mocktest\security\JwtTokenProviderTest.class
+com\mocktest\service\impl\MalpracticeServiceImplTest.class
+com\mocktest\service\impl\SubmissionServiceImplTest.class
+com\mocktest\service\impl\QuestionServiceImplTest.class
+com\mocktest\security\CustomUserDetailsServiceTest.class
+com\mocktest\service\impl\ExamServiceImplTest.class
+com\mocktest\service\impl\DepartmentServiceImplTest.class
