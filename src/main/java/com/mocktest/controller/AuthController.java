@@ -2,7 +2,6 @@ package com.mocktest.controller;
 
 import com.mocktest.dto.auth.LoginRequest;
 import com.mocktest.dto.auth.LoginResponse;
-import com.mocktest.dto.auth.RegisterRequest;
 import com.mocktest.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

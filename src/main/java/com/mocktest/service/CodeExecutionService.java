@@ -2,8 +2,6 @@ package com.mocktest.service;
 
 import com.mocktest.dto.code.CodeExecutionResult;
 
-import java.util.List;
-
 /**
  * Executes student code against hidden test cases via a sandboxed environment.
  */
