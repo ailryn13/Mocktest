@@ -45,8 +45,32 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.existsByEmail(adminEmail)) {
-            log.info("Admin user '{}' already exists – skipping seed.", adminEmail);
+        var existingUser = userRepository.findByEmail(adminEmail);
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            boolean updated = false;
+
+            if (user.getRole() != Role.ADMIN) {
+                user.setRole(Role.ADMIN);
+                updated = true;
+            }
+
+            if (!passwordEncoder.matches(adminPassword, user.getPasswordHash())) {
+                user.setPasswordHash(passwordEncoder.encode(adminPassword));
+                updated = true;
+            }
+
+            if (!adminName.equals(user.getName())) {
+                user.setName(adminName);
+                updated = true;
+            }
+
+            if (updated) {
+                userRepository.save(user);
+                log.info("Admin user '{}' found and normalized to ADMIN credentials.", adminEmail);
+            } else {
+                log.info("Admin user '{}' already exists and is valid.", adminEmail);
+            }
             return;
         }
 
