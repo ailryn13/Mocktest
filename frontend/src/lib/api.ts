@@ -1,28 +1,14 @@
 function getApiBase(): string {
   const configuredBase = process.env.NEXT_PUBLIC_API_URL;
-  if (typeof window !== "undefined") {
-    const { protocol, hostname } = window.location;
-
-    if (configuredBase && configuredBase.trim().length > 0) {
-      const normalized = configuredBase.trim();
-      const pointsToLocalhost =
-        normalized.includes("localhost") || normalized.includes("127.0.0.1");
-      const browserIsLocalhost =
-        hostname === "localhost" || hostname === "127.0.0.1";
-
-      if (!pointsToLocalhost || browserIsLocalhost) {
-        return normalized;
-      }
-    }
-
-    return `${protocol}//${hostname}:8080/api`;
-  }
-
   if (configuredBase && configuredBase.trim().length > 0) {
     return configuredBase.trim();
   }
 
-  return "http://localhost:8080/api";
+  if (typeof window !== "undefined") {
+    return "/api";
+  }
+
+  return "http://backend:8080/api";
 }
 
 const API_BASE = getApiBase();
