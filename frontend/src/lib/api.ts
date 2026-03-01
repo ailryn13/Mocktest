@@ -13,6 +13,12 @@ function getApiBase(): string {
 
 const API_BASE = getApiBase();
 
+function getDirectBackendBase(): string | null {
+  if (typeof window === "undefined") return null;
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:8080/api`;
+}
+
 /**
  * Thin wrapper around fetch that:
  *  - Prepends the backend base URL.
@@ -36,10 +42,29 @@ export async function apiFetch<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const requestOptions: RequestInit = {
     ...options,
     headers,
-  });
+  };
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${endpoint}`, requestOptions);
+  } catch (error) {
+    const directBase = getDirectBackendBase();
+    if (API_BASE === "/api" && directBase) {
+      res = await fetch(`${directBase}${endpoint}`, requestOptions);
+    } else {
+      throw error;
+    }
+  }
+
+  if ((res.status === 502 || res.status === 503) && API_BASE === "/api") {
+    const directBase = getDirectBackendBase();
+    if (directBase) {
+      res = await fetch(`${directBase}${endpoint}`, requestOptions);
+    }
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
