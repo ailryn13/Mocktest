@@ -12,6 +12,7 @@ import { apiFetch } from "@/lib/api";
 
 interface User {
   name: string;
+  email: string;
   role: string;
   token: string;
 }
@@ -36,14 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const name = localStorage.getItem("userName");
     const role = localStorage.getItem("userRole");
 
+    const email = localStorage.getItem("userEmail") ?? "";
     if (token && name && role) {
-      setUser({ token, name, role });
+      setUser({ token, name, email, role });
     }
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
-    const data = await apiFetch<{ token: string; role: string; name: string }>(
+    const data = await apiFetch<{ token: string; roles: string[]; fullName: string }>(
       "/auth/login",
       {
         method: "POST",
@@ -51,23 +53,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    // Extract primary role from roles array
+    const primaryRole = data.roles && data.roles.length > 0 ? data.roles[0] : "STUDENT";
+
     localStorage.setItem("token", data.token);
-    localStorage.setItem("userName", data.name);
-    localStorage.setItem("userRole", data.role);
+    localStorage.setItem("userName", data.fullName);
+    localStorage.setItem("userEmail", email);
+    localStorage.setItem("userRole", primaryRole);
 
     const loggedInUser: User = {
       token: data.token,
-      name: data.name,
-      role: data.role,
+      name: data.fullName,
+      email,
+      role: primaryRole,
     };
     setUser(loggedInUser);
 
     // Redirect based on role
-    switch (data.role) {
+    switch (primaryRole) {
+      case "SUPER_ADMIN":
+        router.push("/superadmin");
+        break;
       case "ADMIN":
         router.push("/admin");
         break;
-      case "MEDIATOR":
+      case "MODERATOR":
         router.push("/mediator");
         break;
       case "STUDENT":
@@ -81,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
     localStorage.removeItem("userRole");
     setUser(null);
     router.push("/login");
