@@ -45,6 +45,7 @@ public class QuestionServiceImpl implements QuestionService {
                 request.getMarks() != null ? request.getMarks() : 1,
                 request.getDifficulty() != null ? request.getDifficulty() : "MEDIUM");
         question.setLanguage(request.getLanguage());
+        question.setBannedKeywords(request.getBannedKeywords());
 
         question = questionRepository.save(question);
         return toResponse(question, false);
@@ -79,6 +80,7 @@ public class QuestionServiceImpl implements QuestionService {
         question.setMarks(request.getMarks() != null ? request.getMarks() : 1);
         question.setDifficulty(request.getDifficulty() != null ? request.getDifficulty() : "MEDIUM");
         question.setLanguage(request.getLanguage());
+        question.setBannedKeywords(request.getBannedKeywords());
 
         question = questionRepository.save(question);
         return toResponse(question, false);
@@ -103,7 +105,7 @@ public class QuestionServiceImpl implements QuestionService {
     /* ---- mapper ---- */
 
     private QuestionResponse toResponse(Question q, boolean hideAnswers) {
-        return new QuestionResponse(
+        QuestionResponse resp = new QuestionResponse(
                 q.getId(),
                 q.getExam().getId(),
                 q.getType().name(),
@@ -114,5 +116,7 @@ public class QuestionServiceImpl implements QuestionService {
                 q.getMarks(),
                 q.getDifficulty(),
                 q.getLanguage());
+        resp.setBannedKeywords(q.getBannedKeywords());
+        return resp;
     }
 }

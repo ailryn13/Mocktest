@@ -35,7 +35,7 @@ public class JwtTokenProvider {
     private long jwtExpirationMs;
 
     /**
-     * Generate JWT token with department and role claims
+     * Generate JWT token with college, department and role claims
      */
     public String generateToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -43,6 +43,7 @@ public class JwtTokenProvider {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userDetails.getId());
         claims.put("email", userDetails.getUsername());
+        claims.put("collegeId", userDetails.getCollegeId()); // null for SUPER_ADMIN
         claims.put("department", userDetails.getDepartment());
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)

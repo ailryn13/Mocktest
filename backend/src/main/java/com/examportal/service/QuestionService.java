@@ -4,10 +4,12 @@ import com.examportal.dto.BulkUploadResult;
 import com.examportal.dto.CodingQuestionDTO;
 import com.examportal.dto.MCQQuestionDTO;
 import com.examportal.dto.QuestionDTO;
+import com.examportal.entity.College;
 import com.examportal.entity.Question;
 import com.examportal.entity.QuestionType;
 import com.examportal.repository.QuestionRepository;
-import com.examportal.security.DepartmentSecurityService;
+import com.examportal.repository.CollegeRepository;
+import com.examportal.security.CollegeSecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -36,44 +38,56 @@ import java.util.regex.Pattern;
 public class QuestionService {
 
     private final QuestionRepository questionRepository;
-    private final DepartmentSecurityService departmentSecurityService;
+    private final CollegeRepository collegeRepository;
+    private final CollegeSecurityService collegeSecurityService;
 
     @Transactional
     public QuestionDTO createQuestion(QuestionDTO dto) {
-        String department = departmentSecurityService.getCurrentUserDepartment();
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        String department = collegeSecurityService.getCurrentUserDepartment();
 
         Question question = mapToEntity(dto);
         question.setDepartment(department);
+        
+        // Set college relationship
+        if (collegeId != null) {
+            College college = collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+            question.setCollege(college);
+        }
 
         validateQuestion(question);
-
-        // Deduplication Check
-        Question existing = questionRepository.findByQuestionTextAndDepartment(question.getQuestionText(), department);
-        if (existing != null) {
-            log.info("Skipping duplicate question: {}", question.getQuestionText());
-            return mapToDTO(existing);
-        }
 
         question = questionRepository.save(question);
         return mapToDTO(question);
     }
 
     public List<QuestionDTO> getQuestions() {
-        String department = departmentSecurityService.getCurrentUserDepartment();
-        List<Question> questions = questionRepository.findByDepartmentIn(java.util.List.of(department, "General"));
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        List<Question> questions = questionRepository.findByCollegeIdOrGlobal(collegeId);
         return questions.stream().map(this::mapToDTO).toList();
     }
 
     @Transactional
     public BulkUploadResult bulkCreateQuestions(List<QuestionDTO> questionDTOs) {
-        String department = departmentSecurityService.getCurrentUserDepartment();
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        String department = collegeSecurityService.getCurrentUserDepartment();
+        
+        // Fetch  college once if needed
+        College college = null;
+        if (collegeId != null) {
+            college = collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+        }
+        
         BulkUploadResult result = BulkUploadResult.builder().build();
         int index = 1;
 
         for (QuestionDTO dto : questionDTOs) {
             try {
                 Question question = mapToEntity(dto);
-                question.setDepartment(department); // Ensure department is set from context
+                question.setDepartment(department);
+                question.setCollege(college);
                 validateQuestion(question);
 
                 question = questionRepository.save(question);
@@ -91,9 +105,8 @@ public class QuestionService {
     }
 
     public List<QuestionDTO> getQuestionsByType(QuestionType type) {
-        String department = departmentSecurityService.getCurrentUserDepartment();
-        List<Question> questions = questionRepository
-                .findByDepartmentInAndType(java.util.List.of(department, "General"), type);
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        List<Question> questions = questionRepository.findByCollegeIdOrGlobalAndType(collegeId, type);
         return questions.stream().map(this::mapToDTO).toList();
     }
 
@@ -101,7 +114,7 @@ public class QuestionService {
         Question question = questionRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        departmentSecurityService.verifyDepartmentAccess(question.getDepartment());
+        collegeSecurityService.verifyCollegeAccess(question.getCollege());
         return mapToDTO(question);
     }
 
@@ -110,7 +123,7 @@ public class QuestionService {
         Question original = questionRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        departmentSecurityService.verifyDepartmentAccess(original.getDepartment());
+        collegeSecurityService.verifyCollegeAccess(original.getCollege());
 
         // Create a deep copy
         Question cloned = Question.builder()
@@ -162,7 +175,15 @@ public class QuestionService {
 
     @Transactional
     public BulkUploadResult bulkUploadFromCSV(MultipartFile file) {
-        String department = departmentSecurityService.getCurrentUserDepartment();
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        String department = collegeSecurityService.getCurrentUserDepartment();
+        
+        College college = null;
+        if (collegeId != null) {
+            college = collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+        }
+        
         BulkUploadResult result = BulkUploadResult.builder().build();
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
@@ -172,6 +193,7 @@ public class QuestionService {
                 String[] row = rows.get(i);
                 try {
                     Question question = parseCsvRowToQuestion(row, department);
+                    question.setCollege(college);
                     validateQuestion(question);
                     question = questionRepository.save(java.util.Objects.requireNonNull(question));
                     result.getQuestionIds().add(question.getId());
@@ -213,7 +235,15 @@ public class QuestionService {
 
     @Transactional
     public BulkUploadResult processTextPaste(String text) {
-        String department = departmentSecurityService.getCurrentUserDepartment();
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        String department = collegeSecurityService.getCurrentUserDepartment();
+        
+        College college = null;
+        if (collegeId != null) {
+            college = collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+        }
+        
         BulkUploadResult result = BulkUploadResult.builder().build();
 
         // Split by "Q:" or "Question:" to identify individual questions
@@ -226,6 +256,7 @@ public class QuestionService {
             try {
                 Question question = parseTextToQuestion(chunk, department);
                 if (question != null) {
+                    question.setCollege(college);
                     validateQuestion(question);
                     question = questionRepository.save(java.util.Objects.requireNonNull(question));
                     result.getQuestionIds().add(question.getId());
@@ -340,7 +371,15 @@ public class QuestionService {
 
     @Transactional
     public BulkUploadResult bulkUploadFromExcel(MultipartFile file) {
-        String department = departmentSecurityService.getCurrentUserDepartment();
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        String department = collegeSecurityService.getCurrentUserDepartment();
+        
+        College college = null;
+        if (collegeId != null) {
+            college = collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+        }
+        
         BulkUploadResult result = BulkUploadResult.builder().build();
 
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
@@ -354,6 +393,7 @@ public class QuestionService {
 
                 try {
                     Question question = parseRowToQuestion(row, department);
+                    question.setCollege(college);
                     validateQuestion(question);
                     question = questionRepository.save(java.util.Objects.requireNonNull(question));
                     result.getQuestionIds().add(question.getId());

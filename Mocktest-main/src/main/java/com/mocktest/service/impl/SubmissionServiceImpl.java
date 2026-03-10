@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -119,11 +118,25 @@ public class SubmissionServiceImpl implements SubmissionService {
                                 studentCode, new com.fasterxml.jackson.core.type.TypeReference<>() {});
                         String rawCode = codeMap.getOrDefault("code", "");
 
-                        // 1. Banned keywords
-                        String bannedKwStr = exam.getBannedKeywords();
-                        if (bannedKwStr != null && !bannedKwStr.isBlank()) {
-                            List<String> bannedList = Arrays.asList(bannedKwStr.split(","));
-                            List<String> found = constraintChecker.findBannedKeywords(rawCode, bannedList);
+                        // 1. Banned keywords (exam-level + question-level, merged)
+                        java.util.Set<String> bannedSet = new java.util.LinkedHashSet<>();
+                        String examBannedKwStr = exam.getBannedKeywords();
+                        if (examBannedKwStr != null && !examBannedKwStr.isBlank()) {
+                            for (String kw : examBannedKwStr.split(",")) {
+                                String t = kw.trim();
+                                if (!t.isEmpty()) bannedSet.add(t);
+                            }
+                        }
+                        String qBannedKwStr = q.getBannedKeywords();
+                        if (qBannedKwStr != null && !qBannedKwStr.isBlank()) {
+                            for (String kw : qBannedKwStr.split(",")) {
+                                String t = kw.trim();
+                                if (!t.isEmpty()) bannedSet.add(t);
+                            }
+                        }
+                        if (!bannedSet.isEmpty()) {
+                            List<String> found = constraintChecker.findBannedKeywords(rawCode,
+                                    new java.util.ArrayList<>(bannedSet));
                             if (!found.isEmpty()) {
                                 throw new BadRequestException(
                                         "Banned construct(s) used: " + String.join(", ", found));

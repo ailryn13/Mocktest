@@ -16,6 +16,7 @@ interface Question {
   marks: number;
   difficulty: string;
   language: string | null;
+  bannedKeywords: string | null;
 }
 
 interface QRow {
@@ -28,6 +29,7 @@ interface QRow {
   marks: number;
   difficulty: string;
   language: string | null;
+  bannedKeywords: string | null;
 }
 
 interface Submission {
@@ -73,7 +75,8 @@ export default function ExamDetailPage() {
   const [qTestCases, setQTestCases] = useState('[{"input":"","expectedOutput":""}]');
   const [qMarks, setQMarks] = useState(1);
   const [qDifficulty, setQDifficulty] = useState("MEDIUM");
-  const [qLanguage, setQLanguage] = useState("java");
+  const [qLanguage, setQLanguage] = useState("");
+  const [qBannedKeywords, setQBannedKeywords] = useState("");
   const [savingQ, setSavingQ] = useState(false);
 
   // Bulk import state
@@ -179,7 +182,8 @@ export default function ExamDetailPage() {
     setQTestCases('[{"input":"","expectedOutput":""}]');
     setQMarks(1);
     setQDifficulty("MEDIUM");
-    setQLanguage("java");
+    setQLanguage("");
+    setQBannedKeywords("");
     setEditingQId(null);
   }
 
@@ -192,7 +196,8 @@ export default function ExamDetailPage() {
     setQTestCases(q.testCases || '[{"input":"","expectedOutput":""}]');
     setQMarks(q.marks ?? 1);
     setQDifficulty(q.difficulty ?? "MEDIUM");
-    setQLanguage(q.language || "java");
+    setQLanguage(q.language || "");
+    setQBannedKeywords(q.bannedKeywords || "");
     setQMode("single");
   }
 
@@ -209,6 +214,7 @@ export default function ExamDetailPage() {
       correctAnswer: qType === "MCQ" ? qCorrectAnswer : null,
       testCases: qType === "CODING" ? qTestCases : null,
       language: qType === "CODING" ? qLanguage : null,
+      bannedKeywords: qType === "CODING" && qBannedKeywords.trim() ? qBannedKeywords.trim() : null,
       marks: qMarks,
       difficulty: qDifficulty,
     });
@@ -261,20 +267,22 @@ export default function ExamDetailPage() {
       filename = "mcq_questions_template.csv";
     } else if (bulkType === "CODING") {
       rows = [
-        "type,content,testCasesInput,testCasesExpected,marks,difficulty,language",
-        'CODING,"Write a function to return the sum of two numbers.","1 2","3",5,EASY,java',
-        'CODING,"Reverse a string.","hello","olleh",5,MEDIUM,python',
-        'CODING,"Find the nth Fibonacci number.","10","55",10,HARD,cpp',
+        "type,content,testCasesInput,testCasesExpected,marks,difficulty,allowedLanguages,bannedKeywords",
+        'CODING,"Write a function to return the sum of two numbers.","1 2","3",5,EASY,"Java,Python","for,while"',
+        'CODING,"Reverse a string.","hello","olleh",5,MEDIUM,Python,',
+        'CODING,"Find the nth Fibonacci number.","10","55",10,HARD,"C++,Java,Python",',
+
       ];
       filename = "coding_questions_template.csv";
     } else {
       // HYBRID — all columns
       rows = [
-        "type,content,optionA,optionB,optionC,optionD,correctAnswer,testCasesInput,testCasesExpected,marks,difficulty,language",
-        'MCQ,"What is 2+2?","1","2","3","4",D,,,1,EASY,',
-        'MCQ,"Which planet is closest to the sun?","Mercury","Venus","Earth","Mars",A,,,2,MEDIUM,',
-        'CODING,"Write a function to return the sum of two numbers.",,,,,, "1 2","3",5,EASY,java',
-        'CODING,"Reverse a string.",,,,,, "hello","olleh",5,MEDIUM,python',
+        "type,content,optionA,optionB,optionC,optionD,correctAnswer,testCasesInput,testCasesExpected,marks,difficulty,allowedLanguages,bannedKeywords",
+        'MCQ,"What is 2+2?","1","2","3","4",D,,,1,EASY,,',
+        'MCQ,"Which planet is closest to the sun?","Mercury","Venus","Earth","Mars",A,,,2,MEDIUM,,',
+        'CODING,"Write a function to return the sum of two numbers.",,,,,, "1 2","3",5,EASY,"Java,Python","for,while"',
+        'CODING,"Reverse a string.",,,,,, "hello","olleh",5,MEDIUM,Python,',
+
       ];
       filename = "hybrid_questions_template.csv";
     }
@@ -317,7 +325,9 @@ export default function ExamDetailPage() {
         const iTcExpected  = col("testcasesexpected");
         const iMarks       = col("marks");
         const iDifficulty  = col("difficulty");
-        const iLanguage    = col("language");
+        const iAllowedLang = col("allowedlanguages");
+        const iLanguage    = iAllowedLang !== -1 ? iAllowedLang : col("language");
+        const iBannedKw    = col("bannedkeywords");
 
         if (iType === -1 || iContent === -1) {
           setCsvError("CSV must have at least 'type' and 'content' columns.");
@@ -353,6 +363,7 @@ export default function ExamDetailPage() {
             marks: parseInt(marksRaw) || 1,
             difficulty: diff,
             language: rawType === "CODING" && iLanguage !== -1 ? cols[iLanguage]?.trim() || null : null,
+            bannedKeywords: rawType === "CODING" && iBannedKw !== -1 ? cols[iBannedKw]?.trim() || null : null,
           });
         }
         if (rows.length === 0) setCsvError("No valid rows found. Check the template format.");
@@ -421,7 +432,8 @@ Generate only MCQ type. Do not include testCases.`;
     ],
     "marks": 5,
     "difficulty": "EASY",
-    "language": "java"
+    "allowedLanguages": ["java","python"],
+    "bannedKeywords": "for,while"
   },
   {
     "type": "CODING",
@@ -432,20 +444,21 @@ Generate only MCQ type. Do not include testCases.`;
     ],
     "marks": 5,
     "difficulty": "MEDIUM",
-    "language": "python"
+    "allowedLanguages": ["python"],
+    "bannedKeywords": ""
   }
 ]
-Generate only CODING type. Do not include optionA/B/C/D or correctAnswer. Add a "language" field to each CODING question — one of: java, python, cpp, javascript, c.`;
+Generate only CODING type. Do not include optionA/B/C/D or correctAnswer. Add an "allowedLanguages" field (array of allowed languages, e.g. ["java","python","cpp"] — use empty array [] to allow any language). Add a "bannedKeywords" field (comma-separated keywords students must NOT use, e.g. "for,while,sort") — leave empty string if no restriction.`;
     }
     // HYBRID
     return `Paste questions in the following JSON array format (mix of MCQ and CODING).
 
 RULES:
 - MCQ must have: type, content, optionA, optionB, optionC, optionD, correctAnswer (A/B/C/D), marks, difficulty
-- CODING must have: type, content, testCases (array of {input, expectedOutput}), marks, difficulty, language
+- CODING must have: type, content, testCases (array of {input, expectedOutput}), marks, difficulty, allowedLanguages, bannedKeywords
 - difficulty must be: EASY | MEDIUM | HARD
-- language (CODING only) must be one of: java, python, cpp, javascript, c
-- Do NOT add extra fields
+- allowedLanguages (CODING only): array of allowed languages, e.g. ["java","python","cpp"] — use empty array [] to allow any language
+- bannedKeywords (CODING only): comma-separated keywords students must NOT use (e.g. "for,while,sort") — use empty string if no restriction
 
 [
   {
@@ -514,7 +527,8 @@ RULES:
     ],
     "marks": 10,
     "difficulty": "EASY",
-    "language": "java"
+    "allowedLanguages": ["java","python"],
+    "bannedKeywords": "for,while"
   },
   {
     "type": "CODING",
@@ -527,10 +541,11 @@ RULES:
     ],
     "marks": 10,
     "difficulty": "MEDIUM",
-    "language": "python"
+    "allowedLanguages": ["python","cpp"],
+    "bannedKeywords": ""
   }
 ]
-MCQ questions must NOT include a language field. CODING questions must include "language" — one of: java, python, cpp, javascript, c.`;
+MCQ questions must NOT include an allowedLanguages field. CODING questions must include "allowedLanguages" — an array of allowed languages (e.g. [\"java\",\"python\",\"cpp\"]), use empty array [] to allow any language. CODING questions must include "bannedKeywords" — comma-separated keywords students must NOT use (e.g. \"for,while,sort\"), use empty string if no restriction.`;
   }
 
   function copyAiPrompt() {
@@ -561,7 +576,12 @@ MCQ questions must NOT include a language field. CODING questions must include "
           testCases: testCasesJson,
           marks: Number(item.marks) || 1,
           difficulty: String(item.difficulty || "MEDIUM").toUpperCase(),
-          language: t === "CODING" ? (item.language ? String(item.language) : null) : null,
+          language: t === "CODING" ? (
+            item.allowedLanguages
+              ? (Array.isArray(item.allowedLanguages) ? item.allowedLanguages.join(',') : String(item.allowedLanguages))
+              : item.language ? String(item.language) : null
+          ) : null,
+          bannedKeywords: t === "CODING" && item.bannedKeywords ? String(item.bannedKeywords) : null,
         };
       });
       if (rows.length === 0) setPasteError("Array is empty.");
@@ -782,19 +802,44 @@ MCQ questions must NOT include a language field. CODING questions must include "
                   {qType === "CODING" && (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Language</label>
-                        <select value={qLanguage} onChange={(e) => setQLanguage(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                          <option value="java">Java</option>
-                          <option value="python">Python</option>
-                          <option value="cpp">C++</option>
-                          <option value="c">C</option>
-                          <option value="javascript">JavaScript</option>
-                          <option value="typescript">TypeScript</option>
-                          <option value="go">Go</option>
-                          <option value="rust">Rust</option>
-                          <option value="any">Any Language</option>
-                        </select>
+                        <label className="block text-xs text-gray-400 mb-1">
+                          Allowed Languages{" "}
+                          <span className="text-gray-600">(comma-separated, e.g. <span className="font-mono">Java, Python, C++</span> — leave blank for any)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={qLanguage}
+                          onChange={(e) => setQLanguage(e.target.value)}
+                          placeholder="e.g. Java, Python, C++  (leave blank to allow any language)"
+                          className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                        {qLanguage.trim() && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {qLanguage.split(',').map(l => l.trim()).filter(Boolean).map(lang => (
+                              <span key={lang} className="bg-purple-700/60 text-purple-200 text-xs px-2 py-0.5 rounded-full">{lang}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">
+                          Banned Keywords{" "}
+                          <span className="text-gray-600">(comma-separated, e.g. <span className="font-mono">for,while,import</span>)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={qBannedKeywords}
+                          onChange={(e) => setQBannedKeywords(e.target.value)}
+                          placeholder="e.g. for,while,sort  (leave blank for no question-level restriction)"
+                          className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 font-mono"
+                        />
+                        {qBannedKeywords.trim() && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {qBannedKeywords.split(',').map(k => k.trim()).filter(Boolean).map(kw => (
+                              <span key={kw} className="bg-red-700/60 text-red-200 text-xs px-2 py-0.5 rounded-full">🚫 {kw}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-1">Test Cases (JSON array)</label>
@@ -877,10 +922,12 @@ MCQ questions must NOT include a language field. CODING questions must include "
                   {bulkType !== "MCQ" && (
                     <p className="text-xs text-gray-500 bg-gray-900/60 border border-gray-700 rounded-lg px-3 py-2">
                       <span className="text-gray-400 font-medium">CODING columns:</span>{" "}
-                      <span className="font-mono text-gray-400">type, content, testCasesInput, testCasesExpected, marks, difficulty, <span className="text-violet-400 font-semibold">language</span></span>
+                      <span className="font-mono text-gray-400">type, content, testCasesInput, testCasesExpected, marks, difficulty, <span className="text-violet-400 font-semibold">language</span>, <span className="text-red-400 font-semibold">bannedKeywords</span></span>
                       <br />
-                      <span className="text-gray-600">language values: </span>
-                      <span className="font-mono text-gray-500">java &nbsp;|&nbsp; python &nbsp;|&nbsp; cpp &nbsp;|&nbsp; javascript &nbsp;|&nbsp; c</span>
+                      <span className="text-gray-600">language: </span>
+                      <span className="font-mono text-gray-500">java | python | cpp | javascript | c</span>
+                      <span className="text-gray-600"> &nbsp;&middot;&nbsp; bannedKeywords: </span>
+                      <span className="font-mono text-gray-500">comma-separated, e.g. <span className="text-red-400">for,while,import</span> (optional)</span>
                     </p>
                   )}
                   {csvError && <p className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2">{csvError}</p>}
@@ -897,6 +944,7 @@ MCQ questions must NOT include a language field. CODING questions must include "
                               <th className="px-3 py-2">Marks</th>
                               <th className="px-3 py-2">Difficulty</th>
                               <th className="px-3 py-2">Language</th>
+                              <th className="px-3 py-2">Banned KW</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -916,6 +964,7 @@ MCQ questions must NOT include a language field. CODING questions must include "
                                   }`}>{r.difficulty}</span>
                                 </td>
                                 <td className="px-3 py-2 text-gray-400">{r.language ?? <span className="text-gray-600">—</span>}</td>
+                                <td className="px-3 py-2 text-red-400 font-mono text-xs">{r.bannedKeywords ?? <span className="text-gray-600">—</span>}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1023,7 +1072,8 @@ MCQ questions must NOT include a language field. CODING questions must include "
     ],
     "marks": 5,
     "difficulty": "EASY",
-    "language": "java"
+    "language": "java",
+    "bannedKeywords": "for,while"
   },
   {
     "type": "CODING",
@@ -1035,7 +1085,8 @@ MCQ questions must NOT include a language field. CODING questions must include "
     ],
     "marks": 5,
     "difficulty": "MEDIUM",
-    "language": "python"
+    "language": "python",
+    "bannedKeywords": ""
   }
 ]`
                         : `[
@@ -1105,7 +1156,8 @@ MCQ questions must NOT include a language field. CODING questions must include "
     ],
     "marks": 10,
     "difficulty": "EASY",
-    "language": "java"
+    "language": "java",
+    "bannedKeywords": "for,while"
   },
   {
     "type": "CODING",
@@ -1118,7 +1170,8 @@ MCQ questions must NOT include a language field. CODING questions must include "
     ],
     "marks": 10,
     "difficulty": "MEDIUM",
-    "language": "python"
+    "language": "python",
+    "bannedKeywords": ""
   }
 ]`
                       } />
@@ -1129,6 +1182,11 @@ MCQ questions must NOT include a language field. CODING questions must include "
                       <span className="font-mono text-violet-400 font-semibold">"language"</span>
                       <span className="text-gray-500"> — one of: </span>
                       <span className="font-mono text-gray-400">java &nbsp;|&nbsp; python &nbsp;|&nbsp; cpp &nbsp;|&nbsp; javascript &nbsp;|&nbsp; c</span>
+                      <span className="text-gray-600"> &nbsp;&middot;&nbsp; </span>
+                      <span className="font-mono text-red-400 font-semibold">"bannedKeywords"</span>
+                      <span className="text-gray-500"> — comma-separated (e.g. </span>
+                      <span className="font-mono text-red-400">"for,while,sort"</span>
+                      <span className="text-gray-500">) or empty string if no restriction</span>
                     </p>
                   )}
                   {pasteError && <p className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2">{pasteError}</p>}
@@ -1231,6 +1289,16 @@ MCQ questions must NOT include a language field. CODING questions must include "
                         )}
                         {q.type === "CODING" && q.testCases && (
                           <p className="mt-1 text-xs text-gray-500 font-mono">Test cases: {q.testCases}</p>
+                        )}
+                        {q.type === "CODING" && q.bannedKeywords && (
+                          <div className="mt-1.5 flex flex-wrap gap-1 items-center">
+                            <span className="text-xs text-gray-500">Banned:</span>
+                            {q.bannedKeywords.split(",").map((kw) => kw.trim()).filter(Boolean).map((kw) => (
+                              <span key={kw} className="px-1.5 py-0.5 rounded bg-red-900/40 text-red-300 text-xs font-mono border border-red-800/60">
+                                🚫 {kw}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
                     ))}

@@ -83,6 +83,14 @@ public class Question {
     @Column(name = "language", length = 30)
     private String language;
 
+    /**
+     * For CODING questions: comma-separated banned keywords specific to this question,
+     * e.g. "for,while,import". Overrides / supplements exam-level banned keywords.
+     * Null means no question-level restrictions (exam-level apply if set).
+     */
+    @Column(name = "banned_keywords", length = 500)
+    private String bannedKeywords;
+
     /* ---------- Constructors ---------- */
 
     public Question() {
@@ -188,5 +196,13 @@ public class Question {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public String getBannedKeywords() {
+        return bannedKeywords;
+    }
+
+    public void setBannedKeywords(String bannedKeywords) {
+        this.bannedKeywords = bannedKeywords;
     }
 }

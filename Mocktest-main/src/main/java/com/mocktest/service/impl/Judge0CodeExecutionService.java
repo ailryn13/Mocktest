@@ -25,7 +25,6 @@ import java.util.Map;
  * Configure via {@code app.judge0.*} properties.
  */
 @Service
-@SuppressWarnings("null")
 public class Judge0CodeExecutionService implements CodeExecutionService {
 
     private final String apiUrl;
@@ -137,9 +136,9 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
     private String b64Decode(JsonNode root, String field) {
         JsonNode node = root.get(field);
         if (node == null || node.isNull()) return null;
-        String val = node.asText();
+        String val = node.asText().trim(); // Judge0 appends \n to base64 – trim first
         try {
-            return new String(Base64.getDecoder().decode(val));
+            return new String(Base64.getMimeDecoder().decode(val));
         } catch (IllegalArgumentException e) {
             return val; // not base64, return as-is
         }

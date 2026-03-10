@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/moderator")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('MODERATOR')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
 public class ModeratorController {
 
     private final MinIOUploadService minioUploadService;

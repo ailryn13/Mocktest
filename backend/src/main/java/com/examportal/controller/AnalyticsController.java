@@ -19,7 +19,7 @@ import java.util.List;
 @RequestMapping("/api/analytics")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasAuthority('MODERATOR')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;

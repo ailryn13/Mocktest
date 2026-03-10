@@ -46,6 +46,34 @@ public class CustomUserDetails implements UserDetails {
         return user.getDepartment();
     }
 
+    public Long getCollegeId() {
+        return user.getCollege() != null ? user.getCollege().getId() : null;
+    }
+
+    public String getCollegeName() {
+        return user.getCollege() != null ? user.getCollege().getName() : null;
+    }
+
+    public boolean isSuperAdmin() {
+        return getAuthorities().stream()
+                .anyMatch(auth -> "SUPER_ADMIN".equals(auth.getAuthority()));
+    }
+
+    public boolean isAdmin() {
+        return getAuthorities().stream()
+                .anyMatch(auth -> "ADMIN".equals(auth.getAuthority()));
+    }
+
+    public boolean isModerator() {
+        return getAuthorities().stream()
+                .anyMatch(auth -> "MODERATOR".equals(auth.getAuthority()));
+    }
+
+    public boolean isStudent() {
+        return getAuthorities().stream()
+                .anyMatch(auth -> "STUDENT".equals(auth.getAuthority()));
+    }
+
     // --- Factory Method ---
 
     public static CustomUserDetails build(User user) {
@@ -68,7 +96,11 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        String password = user.getPassword();
+        if (password != null && !password.isBlank()) {
+            return password;
+        }
+        return user.getPasswordHash();
     }
 
     @Override

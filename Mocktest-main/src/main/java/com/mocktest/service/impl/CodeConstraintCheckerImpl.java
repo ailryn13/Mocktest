@@ -114,6 +114,12 @@ public class CodeConstraintCheckerImpl implements CodeConstraintChecker {
             if (banned.contains(text)) {
                 found.add(text);
             }
+            // Special case: C++ '#include <...>' is one token whose text starts with
+            // '#include' – report it as the banned word "include" when present.
+            if (token.getType() == CodeCheck.CPP_HASH_INCLUDE
+                    && banned.contains("include")) {
+                found.add("include");
+            }
         }
         return new ArrayList<>(found);
     }

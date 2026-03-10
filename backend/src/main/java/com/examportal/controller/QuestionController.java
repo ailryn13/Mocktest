@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/questions")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('MODERATOR')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
 public class QuestionController {
 
     private final QuestionService questionService;

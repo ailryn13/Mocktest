@@ -18,7 +18,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-@Filter(name = "departmentFilter", condition = "department = :dept OR department = 'General' OR department IS NULL")
+@Filter(name = "collegeFilter", condition = "college_id = :collegeId OR college_id IS NULL")
 public class Question {
 
     @Id
@@ -35,7 +35,14 @@ public class Question {
     @Column(nullable = false)
     private Integer marks;
 
-    private String department; // For reusability filtering
+    // College-level association (for multi-college isolation)
+    // NULL college_id means question is globally available to all colleges
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id")
+    private College college;
+
+    // Department within college (e.g., CSE, ECE, MECH, "General" for all, or NULL for global)
+    private String department;
 
     @Column(length = 20)
     @Builder.Default

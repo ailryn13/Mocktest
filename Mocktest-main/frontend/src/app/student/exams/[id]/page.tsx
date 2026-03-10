@@ -9,7 +9,7 @@ import dynamic from "next/dynamic";
 const CodeEditor = dynamic(() => import("@/components/CodeEditor"), {
   ssr: false,
   loading: () => (
-    <div className="h-[300px] bg-gray-800 rounded-lg flex items-center justify-center text-gray-500">
+    <div className="h-75 bg-gray-800 rounded-lg flex items-center justify-center text-gray-500">
       Loading editor...
     </div>
   ),
@@ -41,6 +41,8 @@ const LANG_MAP: Record<string, string> = {
   JavaScript: "javascript",
 };
 
+const MAX_VIOLATIONS = 3;
+
 export default function TakeExamPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -63,10 +65,14 @@ export default function TakeExamPage() {
   const [codeValues, setCodeValues] = useState<Record<number, string>>({});
   const [runResults, setRunResults] = useState<Record<number, { output?: string; error?: string; running: boolean }>>({});
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const MAX_VIOLATIONS = 3;
+  // Watermark timestamp — refreshes every 30 s so screenshots are time-stamped
+  const [watermarkTime, setWatermarkTime] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setWatermarkTime(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
   const submittedRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Auth guard
   useEffect(() => {
@@ -180,6 +186,15 @@ export default function TakeExamPage() {
     document.addEventListener("paste", blockClipboard);
     document.addEventListener("cut", blockClipboard);
 
+    // Block PrintScreen — fires on keyup so the OS hasn't captured it yet in most browsers
+    const blockPrintScreen = (e: KeyboardEvent) => {
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        reportViolation("SCREENSHOT_ATTEMPT");
+      }
+    };
+    document.addEventListener("keyup", blockPrintScreen);
+
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("blur", handleBlur);
@@ -187,6 +202,7 @@ export default function TakeExamPage() {
       document.removeEventListener("copy", blockClipboard);
       document.removeEventListener("paste", blockClipboard);
       document.removeEventListener("cut", blockClipboard);
+      document.removeEventListener("keyup", blockPrintScreen);
     };
   }, [submitted, loadingData, reportViolation]);
 
@@ -326,6 +342,39 @@ export default function TakeExamPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white select-none" onContextMenu={(e) => e.preventDefault()}>
+
+      {/* ── Anti-cheat watermark overlay ─────────────────────────────────────
+          Diagonal repeating pattern with student identity + timestamp.
+          pointer-events-none so it never blocks clicks on questions.
+          z-50 keeps it above all exam content.
+      ────────────────────────────────────────────────────────────────────── */}
+      <div
+        className="pointer-events-none fixed inset-0 z-50 overflow-hidden select-none"
+        aria-hidden="true"
+      >
+        {Array.from({ length: 25 }).map((_, i) => {
+            const row = Math.floor(i / 5);   // 0-4  → spreads vertically
+            const col = i % 5;               // 0-4  → spreads horizontally
+            const topPct  = row * 22;                        // 0, 22, 44, 66, 88
+            const leftPct = col * 21 + (row % 2) * 10;      // stagger odd rows by 10%
+            return (
+              <div
+                key={i}
+                className="absolute text-white/[0.12] text-xs font-semibold whitespace-nowrap"
+                style={{
+                  top: `${topPct}%`,
+                  left: `${leftPct}%`,
+                  transform: "rotate(-35deg)",
+                  userSelect: "none",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {user?.name} · {user?.email} · {watermarkTime.toLocaleTimeString()}
+              </div>
+            );
+          })}
+      </div>
+
       {/* Sticky header with timer */}
       <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-8 py-3 flex items-center justify-between">
         <div>

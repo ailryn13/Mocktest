@@ -6,6 +6,7 @@ import com.examportal.dto.MCQQuestionDTO;
 import com.examportal.dto.QuestionDTO;
 import com.examportal.dto.TestDTO;
 import com.examportal.dto.TestQuestionDTO;
+import com.examportal.entity.College;
 import com.examportal.entity.Test;
 import com.examportal.entity.Question;
 import com.examportal.entity.QuestionType;
@@ -14,7 +15,8 @@ import com.examportal.entity.TestType;
 import com.examportal.entity.TestStatus;
 import com.examportal.repository.QuestionRepository;
 import com.examportal.repository.TestRepository;
-import com.examportal.security.DepartmentSecurityService;
+import com.examportal.repository.CollegeRepository;
+import com.examportal.security.CollegeSecurityService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -35,30 +37,39 @@ public class TestService {
 
     private final TestRepository testRepository;
     private final QuestionRepository questionRepository;
-    private final DepartmentSecurityService departmentSecurityService;
+    private final CollegeRepository collegeRepository;
+    private final CollegeSecurityService collegeSecurityService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     public TestService(TestRepository testRepository,
             QuestionRepository questionRepository,
-            DepartmentSecurityService departmentSecurityService) {
+            CollegeRepository collegeRepository,
+            CollegeSecurityService collegeSecurityService) {
         this.testRepository = testRepository;
         this.questionRepository = questionRepository;
-        this.departmentSecurityService = departmentSecurityService;
+        this.collegeRepository = collegeRepository;
+        this.collegeSecurityService = collegeSecurityService;
     }
 
     @Transactional
     public TestDTO createTest(TestDTO dto) {
-        // Enforce department from authenticated user
-        String userDepartment = departmentSecurityService.getCurrentUserDepartment();
-        // departmentSecurityService.verifyDepartmentAccess(userDepartment); //
-        // Implicitly valid
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        String userDepartment = collegeSecurityService.getCurrentUserDepartment();
 
         Test test = new Test();
         test.setTitle(dto.getTitle());
         test.setDescription(dto.getDescription());
         test.setDepartment(userDepartment);
+        
+        // Set college relationship
+        if (collegeId != null) {
+            College college = collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+            test.setCollege(college);
+        }
+        
         test.setStartDateTime(dto.getStartDateTime());
         test.setEndDateTime(dto.getEndDateTime());
         test.setDurationMinutes(dto.getDurationMinutes());
@@ -107,7 +118,7 @@ public class TestService {
         Test test = testRepository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Test not found"));
 
-        departmentSecurityService.verifyDepartmentAccess(test.getDepartment());
+        collegeSecurityService.verifyCollegeAccess(test.getCollege());
 
         test.setTitle(dto.getTitle());
         test.setDescription(dto.getDescription());
@@ -181,7 +192,7 @@ public class TestService {
     public TestDTO updateTestStatus(Long id, String status) {
         Test test = testRepository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Test not found"));
-        departmentSecurityService.verifyDepartmentAccess(test.getDepartment());
+        collegeSecurityService.verifyCollegeAccess(test.getCollege());
 
         test.setStatus(TestStatus.valueOf(status));
         return mapToDTO(testRepository.save(test));
@@ -193,7 +204,7 @@ public class TestService {
         Test test = testRepository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Test not found with ID: " + id));
 
-        departmentSecurityService.verifyDepartmentAccess(test.getDepartment());
+        collegeSecurityService.verifyCollegeAccess(test.getCollege());
 
         try {
             testRepository.delete(test);
@@ -271,12 +282,9 @@ public class TestService {
 
     public List<TestDTO> getAvailableTestsForStudent() {
         LocalDateTime now = LocalDateTime.now();
-        // Note: Global filter is NOT applied for STUDENT role (by design in RlsAspect).
-        // Students can see tests from their department AND General department.
-        // We filter via student's department explicitly here.
-        String department = departmentSecurityService.getCurrentUserDepartment();
-        List<Test> tests = testRepository.findByDepartmentInAndEndDateTimeAfterOrderByStartDateTimeAsc(
-                java.util.List.of(department, "General"), now);
+        Long collegeId = collegeSecurityService.getCurrentUserCollegeId();
+        List<Test> tests = testRepository.findByCollegeIdAndEndDateTimeAfterOrderByStartDateTimeAsc(
+                collegeId, now);
 
         return tests.stream()
                 .filter(test -> test.getStatus() == TestStatus.PUBLISHED)

@@ -26,7 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/tests")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('MODERATOR')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
 public class TestController {
 
     private final TestService testService;

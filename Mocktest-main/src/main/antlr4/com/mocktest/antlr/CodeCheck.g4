@@ -88,6 +88,19 @@ KW_SORT          : 'sort' ;
 KW_ARRAY_KW      : 'array' ;
 
 // =========================================================================
+// Primitive / common type keywords (for "no variable type" constraints)
+// NOTE: must be listed before IDENTIFIER so ANTLR lexer matches them first.
+// =========================================================================
+KW_INT           : 'int' ;
+KW_DOUBLE        : 'double' ;
+KW_FLOAT         : 'float' ;
+KW_LONG          : 'long' ;
+KW_CHAR          : 'char' ;
+KW_BOOLEAN       : 'boolean' ;
+KW_STRING        : 'String' ;
+KW_PRINT         : 'print' ;
+
+// =========================================================================
 // Identifiers (needed for recursion: method name re-appears in body)
 // =========================================================================
 IDENTIFIER    : [a-zA-Z_$] [a-zA-Z_$0-9]* ;
@@ -107,10 +120,24 @@ STRING_SINGLE   : '\'' ( '\\' . | ~['\\\r\n] )* '\'' -> skip ;
 STRING_TEMPLATE : '`'  ( '\\' . | ~[`\\] )*  '`'     -> skip ;
 
 // =========================================================================
+// Arithmetic / logical operators (for "no operator" constraints)
+// NOTE: OP_DIV uses single '/' -- conflicts with comments are resolved by
+// longest-match: '/*' matches BLOCK_COMMENT; '//' matches LINE_COMMENT.
+// =========================================================================
+OP_PLUS          : '+' ;
+OP_MINUS         : '-' ;
+OP_MULT          : '*' ;
+OP_DIV           : '/' ;
+OP_MOD           : '%' ;
+
+// =========================================================================
 // Comments: skip entirely
 // =========================================================================
 LINE_COMMENT    : '//' ~[\r\n]*                       -> skip ;
 BLOCK_COMMENT   : '/*' .*? '*/'                       -> skip ;
+// C++ preprocessor: #include must be caught BEFORE the general # comment rule
+// so that 'include' is not silently swallowed inside a HASH_COMMENT token.
+CPP_HASH_INCLUDE : '#' [ \t]* 'include' ( ~[\r\n] )*  ;
 HASH_COMMENT    : '#' ~[\r\n]*                        -> skip ;
 
 // =========================================================================

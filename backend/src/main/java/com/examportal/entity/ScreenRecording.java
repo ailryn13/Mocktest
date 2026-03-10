@@ -20,6 +20,12 @@ public class ScreenRecording {
     @Column(nullable = false)
     private Long attemptId;
 
+    // College-level association (for multi-college isolation)
+    // Inherited from the attempt's college
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id", nullable = false)
+    private College college;
+
     @Column(nullable = false)
     private Integer chunkNumber;
 

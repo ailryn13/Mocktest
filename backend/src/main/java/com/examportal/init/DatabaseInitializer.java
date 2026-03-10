@@ -42,7 +42,7 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        cleanupLegacyRoles();
+        // cleanupLegacyRoles(); // Disabled - ADMIN role is now used
         initializeRoles();
         initializeModeratorUser();
         initializeTestStudent();
@@ -82,6 +82,24 @@ public class DatabaseInitializer implements CommandLineRunner {
             moderatorRole.setDescription("Moderator role - can create and monitor exams (department-restricted)");
             roleRepository.save(moderatorRole);
             log.info("Created MODERATOR role");
+        }
+
+        // Create ADMIN role
+        if (roleRepository.findByName(Role.ADMIN).isEmpty()) {
+            Role adminRole = new Role();
+            adminRole.setName(Role.ADMIN);
+            adminRole.setDescription("College Admin - can manage exams and users within their assigned college");
+            roleRepository.save(adminRole);
+            log.info("Created ADMIN role");
+        }
+
+        // Create SUPER_ADMIN role
+        if (roleRepository.findByName(Role.SUPER_ADMIN).isEmpty()) {
+            Role superAdminRole = new Role();
+            superAdminRole.setName(Role.SUPER_ADMIN);
+            superAdminRole.setDescription("Super Admin - system-wide access, can manage colleges and assign admins");
+            roleRepository.save(superAdminRole);
+            log.info("Created SUPER_ADMIN role");
         }
 
     }

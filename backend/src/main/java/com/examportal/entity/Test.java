@@ -16,8 +16,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@FilterDef(name = "departmentFilter", parameters = @ParamDef(name = "dept", type = String.class))
-@Filter(name = "departmentFilter", condition = "department = :dept OR department = 'General'")
+@FilterDef(name = "collegeFilter", parameters = @ParamDef(name = "collegeId", type = Long.class))
+@Filter(name = "collegeFilter", condition = "college_id = :collegeId")
 public class Test {
 
     @Id
@@ -30,6 +30,12 @@ public class Test {
     @Column(length = 2000)
     private String description;
 
+    // College-level association (for multi-college isolation)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id", nullable = false)
+    private College college;
+
+    // Department within college (e.g., CSE, ECE, MECH, or "General" for all departments)
     @Column(nullable = false)
     private String department;
 

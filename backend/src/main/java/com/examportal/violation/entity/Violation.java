@@ -1,5 +1,6 @@
 package com.examportal.violation.entity;
 
+import com.examportal.entity.College;
 import com.examportal.violation.converter.MapToJsonConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,12 @@ public class Violation {
     private Long studentId;
     private Long sessionId;
     private Long examId;
+
+    // College-level association (for multi-college isolation)
+    // Inherited from the exam's college
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id", nullable = false)
+    private College college;
 
     @Enumerated(EnumType.STRING)
     private ViolationType type;

@@ -49,14 +49,14 @@ public class ScreenRecordingController {
     }
 
     @GetMapping("/{attemptId}")
-    @PreAuthorize("hasAuthority('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<ScreenRecording>> getRecordings(@PathVariable Long attemptId) {
         List<ScreenRecording> recordings = fileStorageService.getRecordingsForAttempt(attemptId);
         return ResponseEntity.ok(recordings);
     }
 
     @DeleteMapping("/{attemptId}")
-    @PreAuthorize("hasAuthority('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<Void> deleteRecordings(@PathVariable Long attemptId) {
         fileStorageService.deleteRecordingsForAttempt(attemptId);
         return ResponseEntity.ok().build();

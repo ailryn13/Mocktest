@@ -35,7 +35,7 @@ public class OptimizedViolationController {
      * /api/violations/optimized/session/{sessionId}?cursor=2025-12-31T10:30:00&size=20
      */
     @GetMapping("/session/{sessionId}")
-    @PreAuthorize("hasAnyRole('STUDENT', 'MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'MODERATOR')")
     public ResponseEntity<KeysetPageResponse<List<Violation>>> getSessionViolations(
             @PathVariable Long sessionId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime cursor,
@@ -61,7 +61,7 @@ public class OptimizedViolationController {
      * /api/violations/optimized/exam/{examId}?cursor=2025-12-31T10:30:00&size=50
      */
     @GetMapping("/exam/{examId}")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<KeysetPageResponse<List<Violation>>> getExamViolations(
             @PathVariable Long examId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime cursor,
@@ -86,7 +86,7 @@ public class OptimizedViolationController {
      * GET /api/violations/optimized/exam/{examId}/critical
      */
     @GetMapping("/exam/{examId}/critical")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<Violation>> getCriticalViolations(@PathVariable Long examId) {
         List<Violation> violations = queryService.getCriticalViolations(examId);
         return ResponseEntity.ok(violations);
@@ -98,7 +98,7 @@ public class OptimizedViolationController {
      * GET /api/violations/optimized/exam/{examId}/high-confidence?limit=100
      */
     @GetMapping("/exam/{examId}/high-confidence")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<Violation>> getHighConfidenceViolations(
             @PathVariable Long examId,
             @RequestParam(defaultValue = "100") int limit) {
@@ -113,7 +113,7 @@ public class OptimizedViolationController {
      * GET /api/violations/optimized/unconfirmed?since=2025-12-01T00:00:00&size=50
      */
     @GetMapping("/unconfirmed")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<KeysetPageResponse<List<Violation>>> getUnconfirmedViolations(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since,
             @RequestParam(defaultValue = "50") int size) {
@@ -137,7 +137,7 @@ public class OptimizedViolationController {
      * GET /api/violations/optimized/exam/{examId}/stats
      */
     @GetMapping("/exam/{examId}/stats")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<Object[]>> getViolationStats(@PathVariable Long examId) {
         List<Object[]> stats = queryService.getViolationStats(examId);
         return ResponseEntity.ok(stats);
@@ -149,7 +149,7 @@ public class OptimizedViolationController {
      * POST /api/violations/optimized/batch-confirm
      */
     @PostMapping("/batch-confirm")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<Void> batchConfirmViolations(@RequestBody BatchConfirmRequest request) {
         queryService.batchConfirmViolations(request.getViolationIds(), request.isConfirmed());
         return ResponseEntity.ok().build();
@@ -161,7 +161,7 @@ public class OptimizedViolationController {
      * GET /api/violations/optimized/recent?cursor=2025-12-31T10:30:00&size=100
      */
     @GetMapping("/recent")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<KeysetPageResponse<List<Violation>>> getAllRecentViolations(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime cursor,
             @RequestParam(defaultValue = "100") int size) {
@@ -186,7 +186,7 @@ public class OptimizedViolationController {
      * /api/violations/optimized/student/{studentId}/count?start=2025-01-01T00:00:00&end=2025-12-31T23:59:59
      */
     @GetMapping("/student/{studentId}/count")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<Long> countStudentViolations(
             @PathVariable Long studentId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,

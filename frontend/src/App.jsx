@@ -155,7 +155,10 @@ function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/" />
+    // SUPER_ADMIN has access to all routes
+    if (user?.role !== 'SUPER_ADMIN') {
+      return <Navigate to="/" />
+    }
   }
 
   return children

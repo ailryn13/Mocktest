@@ -1,6 +1,7 @@
 package com.mocktest.config;
 
 import com.mocktest.security.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -59,15 +61,37 @@ public class SecurityConfig {
             .sessionManagement(sm ->
                 sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()        // login only
+                // Let CORS pre-flight requests pass through without auth
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()        // login / password-reset
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/mediator/**").hasRole("MEDIATOR")
                 .requestMatchers("/api/student/**").hasRole("STUDENT")
                 .anyRequest().authenticated()
             )
+            // Return 401 (not 403) when the JWT is missing or expired
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(unauthorizedEntryPoint())
+            )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Returns HTTP 401 with a JSON body when a request arrives with no valid JWT.
+     * Without this, Spring Security's default Http403ForbiddenEntryPoint fires and
+     * swallows the real cause (expired / missing token), making it look like an
+     * authorisation error rather than an authentication error.
+     */
+    @Bean
+    public AuthenticationEntryPoint unauthorizedEntryPoint() {
+        return (request, response, authException) -> {
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write(
+                "{\"status\":401,\"message\":\"Unauthorized: your session has expired. Please log in again.\"}");
+        };
     }
 
     @Bean

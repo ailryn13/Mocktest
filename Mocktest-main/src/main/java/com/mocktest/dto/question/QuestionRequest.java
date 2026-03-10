@@ -35,6 +35,12 @@ public class QuestionRequest {
      */
     private String language;
 
+    /**
+     * For CODING questions: comma-separated banned keywords for this specific question,
+     * e.g. "for,while,import". Null means no question-level restriction.
+     */
+    private String bannedKeywords;
+
     public QuestionRequest() {}
 
     public Long getExamId() { return examId; }
@@ -63,4 +69,7 @@ public class QuestionRequest {
 
     public String getLanguage() { return language; }
     public void setLanguage(String language) { this.language = language; }
+
+    public String getBannedKeywords() { return bannedKeywords; }
+    public void setBannedKeywords(String bannedKeywords) { this.bannedKeywords = bannedKeywords; }
 }

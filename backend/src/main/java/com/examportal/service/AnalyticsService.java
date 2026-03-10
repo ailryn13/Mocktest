@@ -5,7 +5,7 @@ import com.examportal.entity.*;
 import com.examportal.repository.StudentAttemptRepository;
 import com.examportal.repository.TestRepository;
 import com.examportal.repository.UserRepository;
-import com.examportal.security.DepartmentSecurityService;
+import com.examportal.security.CollegeSecurityService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class AnalyticsService {
     private final StudentAttemptRepository attemptRepository;
     private final UserRepository userRepository;
     private final ProctorLogService proctorLogService;
-    private final DepartmentSecurityService departmentSecurityService;
+    private final CollegeSecurityService collegeSecurityService;
 
     public List<StudentResultDTO> getDetailedResults(Long testId) {
         log.info("Entering getDetailedResults for testId: {}", testId);
@@ -38,8 +38,8 @@ public class AnalyticsService {
             Test test = testRepository.findById(java.util.Objects.requireNonNull(testId))
                     .orElseThrow(() -> new RuntimeException("Test not found"));
 
-            // Verify department access
-            departmentSecurityService.verifyDepartmentAccess(test.getDepartment());
+            // Verify college access
+            collegeSecurityService.verifyCollegeAccess(test.getCollege());
 
             // Get all attempts for this test first (Source of Truth for who took it)
             List<StudentAttempt> attempts = attemptRepository.findByTestId(testId);
@@ -48,9 +48,9 @@ public class AnalyticsService {
             Map<Long, StudentAttempt> attemptMap = attempts.stream()
                     .collect(Collectors.toMap(StudentAttempt::getStudentId, a -> a));
 
-            // Get all students in the department (to track absentees)
-            List<User> departmentStudents = userRepository.findByRoleNameAndDepartment("STUDENT", test.getDepartment());
-            log.info("Found {} department students for testId: {}", departmentStudents.size(), testId);
+            // Get all students in the college and department
+            List<User> departmentStudents = userRepository.findByRoleNameAndCollegeId("STUDENT", test.getCollege().getId());
+            log.info("Found {} college students for testId: {}", departmentStudents.size(), testId);
 
             // Combine IDs: Students who attempted + Students in department
             java.util.Set<Long> allStudentIds = new java.util.HashSet<>();

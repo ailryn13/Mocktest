@@ -74,10 +74,11 @@ public class GlobalExceptionHandler {
                         WebRequest request) {
                 log.warn("Type mismatch: {}", ex.getMessage());
 
+                Class<?> requiredType = ex.getRequiredType();
                 ErrorResponse error = ErrorResponse.builder()
                                 .error("BAD_REQUEST")
                                 .message(String.format("Parameter '%s' should be of type %s", ex.getName(),
-                                                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName()
+                                                requiredType != null ? requiredType.getSimpleName()
                                                                 : "unknown"))
                                 .timestamp(LocalDateTime.now())
                                 .path(request.getDescription(false).replace("uri=", ""))

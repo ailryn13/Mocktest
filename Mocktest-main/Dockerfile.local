@@ -1,0 +1,10 @@
+# ===========================================================
+#  Local one-stage Dockerfile – uses the pre-built base image
+#  (no internet/Docker Hub pull required)
+#  Usage: docker build -f Dockerfile.local -t mocktest-backend-fixed .
+# ===========================================================
+FROM ganesh200504/mocktest-backend:latest
+
+# Replace the existing JAR with the freshly-built one that includes
+# the SecurityConfig fix (unauthorizedEntryPoint – 401 for missing JWT).
+COPY app.jar /app/app.jar

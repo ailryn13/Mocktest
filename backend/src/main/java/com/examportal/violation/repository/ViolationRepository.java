@@ -54,4 +54,20 @@ public interface ViolationRepository extends JpaRepository<Violation, Long> {
      * Get unconfirmed violations (for review)
      */
     List<Violation> findByConfirmedFalse();
+    
+    // College-based queries
+    List<Violation> findByCollegeId(Long collegeId);
+    
+    List<Violation> findByCollegeIdAndExamIdOrderByDetectedAtDesc(Long collegeId, Long examId);
+    
+    List<Violation> findByCollegeIdAndStudentIdOrderByDetectedAtDesc(Long collegeId, Long studentId);
+    
+    @Query("SELECT COUNT(v) FROM Violation v WHERE v.college.id = :collegeId")
+    long countByCollegeId(@Param("collegeId") Long collegeId);
+    
+    @Query("SELECT COUNT(v) FROM Violation v WHERE v.college.id = :collegeId AND v.confirmed = true")
+    long countConfirmedByCollegeId(@Param("collegeId") Long collegeId);
+    
+    @Query("SELECT v FROM Violation v WHERE v.college.id = :collegeId AND v.detectedAt > :since ORDER BY v.detectedAt DESC")
+    List<Violation> findRecentViolationsByCollege(@Param("collegeId") Long collegeId, @Param("since") LocalDateTime since);
 }

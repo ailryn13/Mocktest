@@ -55,7 +55,7 @@ export default function LoginPage() {
       setAuth(token, user)
       toast.success(`Welcome, ${fullName || email}!`)
 
-      if (primaryRole === 'MODERATOR') {
+      if (primaryRole === 'SUPER_ADMIN' || primaryRole === 'MODERATOR') {
         navigate('/moderator/tests')
       } else {
         navigate('/student/tests')

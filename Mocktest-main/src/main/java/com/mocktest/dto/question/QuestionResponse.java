@@ -12,6 +12,7 @@ public class QuestionResponse {
     private Integer marks;
     private String difficulty;
     private String language;
+    private String bannedKeywords;
 
     public QuestionResponse() {}
 
@@ -65,4 +66,7 @@ public class QuestionResponse {
 
     public String getLanguage() { return language; }
     public void setLanguage(String language) { this.language = language; }
+
+    public String getBannedKeywords() { return bannedKeywords; }
+    public void setBannedKeywords(String bannedKeywords) { this.bannedKeywords = bannedKeywords; }
 }

@@ -6,8 +6,10 @@ import jakarta.persistence.*;
  * Role Entity
  * 
  * Hierarchical roles:
- * - STUDENT: Can take exams, view own submissions
- * - MODERATOR: Can create exams, monitor students (department-restricted)
+ * - STUDENT: Can take exams, view own submissions (college-restricted)
+ * - MODERATOR: Can create exams, monitor students (college + department-restricted)
+ * - ADMIN: Full access to one specific college (college-restricted)
+ * - SUPER_ADMIN: System-wide access, can manage colleges and assign admins
  */
 @Entity
 @Table(name = "roles")
@@ -18,13 +20,15 @@ public class Role {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String name; // STUDENT, MODERATOR
+    private String name; // STUDENT, MODERATOR, ADMIN, SUPER_ADMIN
 
     @Column(length = 255)
     private String description;
 
     public static final String STUDENT = "STUDENT";
     public static final String MODERATOR = "MODERATOR";
+    public static final String ADMIN = "ADMIN";
+    public static final String SUPER_ADMIN = "SUPER_ADMIN";
 
     public Role() {
     }

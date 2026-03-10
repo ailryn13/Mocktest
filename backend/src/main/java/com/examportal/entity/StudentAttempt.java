@@ -27,6 +27,12 @@ public class StudentAttempt {
     @Column(nullable = false)
     private Long studentId;
 
+    // College-level association (for multi-college isolation)
+    // Inherited from the test's college
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id", nullable = false)
+    private College college;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AttemptStatus status;

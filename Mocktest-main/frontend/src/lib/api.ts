@@ -13,12 +13,6 @@ function getApiBase(): string {
 
 const API_BASE = getApiBase();
 
-function getDirectBackendBase(): string | null {
-  if (typeof window === "undefined") return null;
-  const { protocol, hostname } = window.location;
-  return `${protocol}//${hostname}:8080/api`;
-}
-
 /**
  * Thin wrapper around fetch that:
  *  - Prepends the backend base URL.
@@ -47,31 +41,37 @@ export async function apiFetch<T>(
     headers,
   };
 
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${endpoint}`, requestOptions);
-  } catch (error) {
-    const directBase = getDirectBackendBase();
-    if (API_BASE === "/api" && directBase) {
-      res = await fetch(`${directBase}${endpoint}`, requestOptions);
-    } else {
-      throw error;
-    }
-  }
-
-  if ((res.status === 502 || res.status === 503) && API_BASE === "/api") {
-    const directBase = getDirectBackendBase();
-    if (directBase) {
-      res = await fetch(`${directBase}${endpoint}`, requestOptions);
-    }
-  }
+  const res = await fetch(`${API_BASE}${endpoint}`, requestOptions);
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    const message =
-      body?.message || body?.errors
+
+    // Build a human-readable message from the response body.
+    // Previous code had an operator-precedence bug:
+    //   body?.message || body?.errors ? JSON.stringify(body.errors) : fallback
+    // was evaluated as
+    //   (body?.message || body?.errors) ? JSON.stringify(body.errors) : fallback
+    // which discarded body.message when body.errors was present (or vice-versa).
+    const message: string =
+      body?.message
+        ? body.message
+        : body?.errors
         ? JSON.stringify(body.errors)
         : `Request failed with status ${res.status}`;
+
+    // If the JWT is expired or missing the server now returns 401.
+    // Redirect to /login so the student can re-authenticate.
+    // We do NOT redirect for /auth/* calls to avoid a redirect loop.
+    if (res.status === 401 && !endpoint.startsWith("/auth/")) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userEmail");
+        window.location.href = "/login";
+      }
+    }
+
     throw new Error(message);
   }
 

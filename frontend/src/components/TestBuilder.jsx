@@ -304,11 +304,12 @@ const TestBuilder = () => {
                     <h4 className="mb-0 text-white fw-bold">{isEditingMode ? 'Edit Test' : 'Create New Test'}</h4>
                 </div>
 
-                {/* 1. Test Configuration Card */}
+                {/* Single Unified Card */}
                 <Card className="border-0 shadow-sm mb-4 bg-gray-800 text-white">
                     <Card.Body className="p-4">
-                        <h6 className="fw-bold mb-3 text-primary">1. Test Details</h6>
-                        <Row className="g-3">
+
+                        {/* Test Details */}
+                        <Row className="g-3 mb-4">
                             <Col md={12}>
                                 <Form.Group>
                                     <Form.Label className="text-gray-300">Test Title *</Form.Label>
@@ -375,20 +376,14 @@ const TestBuilder = () => {
                                 </Form.Group>
                             </Col>
                         </Row>
-                    </Card.Body>
-                </Card>
 
-                {/* 2. Questions Section */}
-                <Card className="border-0 shadow-sm mb-4 bg-gray-800 text-white">
-                    <Card.Body className="p-4">
-                        <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h6 className="fw-bold m-0 text-primary">2. Questions ({questions.length})</h6>
+                        {/* Divider */}
+                        <hr className="border-gray-700 my-3" />
 
-                            {/* Toolbar */}
+                        {/* Questions */}
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <span className="fw-bold text-primary">Questions ({questions.length})</span>
                             <div className="d-flex gap-2">
-
-                                {/* Separate Buttons as requested */}
-                                {/* Separate Buttons as requested */}
                                 <Button size="sm" variant="outline-primary" onClick={() => { setUploadMode('file'); setShowImportModal(true); }}>
                                     <FileText size={16} className="me-1" /> Upload Excel/CSV
                                 </Button>
@@ -403,7 +398,6 @@ const TestBuilder = () => {
                             {questions.length === 0 ? (
                                 <div className="text-center py-5 border border-dashed border-gray-700 rounded bg-gray-900">
                                     <p className="text-gray-400 mb-0">No questions added yet.</p>
-
                                 </div>
                             ) : (
                                 questions.map((q, index) => (
@@ -434,6 +428,7 @@ const TestBuilder = () => {
                                 ))
                             )}
                         </div>
+
                     </Card.Body>
                 </Card>
 

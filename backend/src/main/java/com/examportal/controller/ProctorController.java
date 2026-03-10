@@ -34,14 +34,14 @@ public class ProctorController {
     }
 
     @GetMapping("/attempts/{attemptId}/violations")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<ProctorLog>> getViolations(@PathVariable Long attemptId) {
         List<ProctorLog> violations = proctorLogService.getViolationTimeline(attemptId);
         return ResponseEntity.ok(violations);
     }
 
     @GetMapping("/attempts/{attemptId}/violation-summary")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<Map<ViolationType, Long>> getViolationSummary(@PathVariable Long attemptId) {
         Map<ViolationType, Long> summary = proctorLogService.getViolationSummary(attemptId);
         return ResponseEntity.ok(summary);

@@ -33,8 +33,14 @@ export default function AdminDashboard() {
 
   // Auth guard
   useEffect(() => {
-    if (!loading && (!user || user.role !== "ADMIN")) {
-      router.replace("/login");
+    if (!loading) {
+      if (!user || user.role !== "ADMIN") {
+        if (user?.role === "SUPER_ADMIN") {
+          router.replace("/superadmin");
+        } else {
+          router.replace("/login");
+        }
+      }
     }
   }, [user, loading, router]);
 

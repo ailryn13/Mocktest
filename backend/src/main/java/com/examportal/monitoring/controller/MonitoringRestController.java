@@ -50,7 +50,7 @@ public class MonitoringRestController {
      * GET /api/monitoring/exam/{examId}/sessions
      */
     @GetMapping("/exam/{examId}/sessions")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<StudentStatus>> getExamSessions(
             @PathVariable Long examId,
             @AuthenticationPrincipal CustomUserDetails moderator) {
@@ -79,7 +79,7 @@ public class MonitoringRestController {
      * GET /api/monitoring/department/sessions
      */
     @GetMapping("/department/sessions")
-    @PreAuthorize("hasAuthority('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<StudentStatus>> getDepartmentSessions(
             @AuthenticationPrincipal CustomUserDetails moderator) {
 
@@ -101,7 +101,7 @@ public class MonitoringRestController {
      * POST /api/monitoring/session/{sessionId}/terminate
      */
     @PostMapping("/session/{sessionId}/terminate")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<String> terminateSession(
             @PathVariable Long sessionId,
             @RequestBody TerminationRequest request,
@@ -139,7 +139,7 @@ public class MonitoringRestController {
      * GET /api/monitoring/stats
      */
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MODERATOR')")
     public ResponseEntity<MonitoringStats> getMonitoringStats() {
         long activeCount = sessionManager.getActiveSessionCount();
         long totalViolations = violationService.countTotalViolations();

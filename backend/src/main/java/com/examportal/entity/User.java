@@ -28,11 +28,25 @@ public class User {
 
     private String username;
     private String password;
+    // Legacy column used by older migrations/deployments.
+    @Column(name = "password_hash")
+    private String passwordHash;
     private String firstName;
     private String lastName;
     private String email;
     private String phone;
+
+    // College-level association (for multi-college isolation)
+    // SUPER_ADMIN users will have collegeId = null (system-wide access)
+    // ADMIN, MODERATOR, STUDENT users must belong to a specific college
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id")
+    private College college;
+
+    // Department within college (e.g., CSE, ECE, MECH)
+    // Used for department-level restrictions within a college
     private String department;
+
     @Builder.Default
     private boolean enabled = true;
     private String profile;
@@ -47,12 +61,26 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
+        syncPasswordColumns();
         createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
+        syncPasswordColumns();
         updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Keep both password columns aligned across old/new schemas.
+     */
+    private void syncPasswordColumns() {
+        if ((password == null || password.isBlank()) && passwordHash != null && !passwordHash.isBlank()) {
+            password = passwordHash;
+        }
+        if ((passwordHash == null || passwordHash.isBlank()) && password != null && !password.isBlank()) {
+            passwordHash = password;
+        }
     }
 
     // NO manual getters or setters here (Lombok handles them)
