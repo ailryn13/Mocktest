@@ -40,3 +40,19 @@ target/
 .classpath
 .project
 .factorypath
+
+# Cloud Provider Credentials & Configs
+.env.gcp.local
+.env.aws.local
+*.pem
+service-account*.json
+gcp-credentials.json
+
+# AWS (Legacy - No longer used)
+mocktest.pem
+send_ssh_key.ps1
+
+# GCP Specific
+.gcloud/
+*.tfstate
+*.tfstate.backup

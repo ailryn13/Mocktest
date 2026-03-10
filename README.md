@@ -93,3 +93,34 @@ After starting:
 ---
 
 **Need help?** Check `backend/STARTUP_GUIDE.md` for detailed information.
+
+---
+
+## ☁️ Cloud Deployment
+
+### Google Cloud Platform (GCP) - Recommended
+
+This application is now deployed on **Google Cloud Platform**. For production deployment:
+
+📘 **See [GCP_DEPLOYMENT.md](GCP_DEPLOYMENT.md)** for complete deployment guide including:
+- Cloud SQL (PostgreSQL) setup
+- Cloud Memorystore (Redis) configuration
+- Cloud Run or Compute Engine deployment
+- Cost estimates and scaling guide
+- Security best practices
+
+Quick deploy to GCP:
+```bash
+# Configure GCP project
+gcloud config set project YOUR_PROJECT_ID
+
+# Build and push images
+./scripts/build-and-push-gcp.ps1
+
+# Deploy
+./deploy-gcp.sh
+```
+
+### AWS Deployment (Deprecated)
+
+⚠️ **Note:** AWS deployment files are legacy and no longer maintained. The project has migrated to GCP.

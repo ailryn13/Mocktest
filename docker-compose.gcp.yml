@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    image: gcr.io/${GCP_PROJECT_ID}/exam-portal-backend:latest
+    container_name: exam-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_REDIS_HOST=${REDIS_HOST}
+      - SPRING_REDIS_PORT=${REDIS_PORT}
+      - SPRING_RABBITMQ_HOST=${RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JUDGE0_URL=${JUDGE0_URL}
+      - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+    logging:
+      driver: gcplogs
+      options:
+        gcp-project: ${GCP_PROJECT_ID}
+        gcp-log-cmd: "true"
+
+  frontend:
+    image: gcr.io/${GCP_PROJECT_ID}/exam-portal-frontend:latest
+    container_name: exam-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=${BACKEND_URL}
+    logging:
+      driver: gcplogs
+      options:
+        gcp-project: ${GCP_PROJECT_ID}
+        gcp-log-cmd: "true"
