@@ -1,16 +1,19 @@
 version: '3.8'
 
 services:
-  # Backend Service (Pulled from Docker Hub)
+  # Backend Service (Built from source)
   backend:
-    image: ganesh200504/exam-portal-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: exam-portal-backend:latest
     container_name: exam-portal-backend
     ports:
       - "9090:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/exam_portal_db
       - SPRING_DATASOURCE_USERNAME=exam_admin
-      - SPRING_DATASOURCE_PASSWORD=SecurePassword123!
+      - SPRING_DATASOURCE_PASSWORD=ExamPortal2024
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_RABBITMQ_HOST=rabbitmq
@@ -37,9 +40,12 @@ services:
       - exam-network
     restart: unless-stopped
 
-  # Frontend Service (Pulled from Docker Hub)
+  # Frontend Service (Built from source)
   frontend:
-    image: ganesh200504/exam-portal-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: exam-portal-frontend:latest
     container_name: exam-portal-frontend
     ports:
       - "80:80"
