@@ -1,11 +1,8 @@
 version: '3.8'
 
 services:
-  # Backend Service (Built from source)
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
     image: exam-portal-backend:latest
     container_name: exam-portal-backend
     ports:
@@ -24,63 +21,44 @@ services:
       - MINIO_ENDPOINT=http://minio:9000
       - JWT_SECRET=YourSuperSecretKeyForJWTTokenGenerationMustBe256BitsOrMore
       - SPRING_PROFILES_ACTIVE=cloud
-      - JUDGE0_BASE_URL=http://localhost:2358
-      - RAPIDAPI_KEY=dummy_key
       - CORS_ALLOWED_ORIGINS=https://mock-test.duckdns.org
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    networks:
-      - exam-network
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    networks: [exam-network]
     restart: unless-stopped
 
-  # Frontend Service (Built from source)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     image: exam-portal-frontend:latest
     container_name: exam-portal-frontend
     ports:
       - "3000:80"
-    depends_on:
-      - backend
-    networks:
-      - exam-network
+    depends_on: [backend]
+    networks: [exam-network]
     restart: unless-stopped
 
-  # Infrastructure (Same as original)
   postgres:
     image: postgres:15-alpine
     container_name: exam-portal-postgres
     environment:
       POSTGRES_DB: exam_portal_db
       POSTGRES_USER: exam_admin
-      POSTGRES_PASSWORD: SecurePassword123!
+      POSTGRES_PASSWORD: ExamPortal2024
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U exam_admin" ]
+      test: ["CMD-SHELL", "pg_isready -U exam_admin"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - exam-network
+    networks: [exam-network]
 
   redis:
     image: redis:7-alpine
     container_name: exam-portal-redis
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - exam-network
+    networks: [exam-network]
 
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
@@ -90,12 +68,9 @@ services:
       RABBITMQ_DEFAULT_PASS: exam_password
       RABBITMQ_DEFAULT_VHOST: exam_vhost
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - exam-network
+    networks: [exam-network]
 
   minio:
     image: minio/minio
@@ -105,28 +80,18 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - exam-network
+    networks: [exam-network]
 
   createbuckets:
     image: minio/mc
     depends_on:
-      minio:
-        condition: service_healthy
+      minio: { condition: service_healthy }
     entrypoint: >
-      /bin/sh -c " /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin; /usr/bin/mc mb myminio/test-cases; /usr/bin/mc anonymous set public myminio/test-cases; exit 0; "
-    networks:
-      - exam-network
+      /bin/sh -c "/usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin; /usr/bin/mc mb myminio/test-cases; /usr/bin/mc anonymous set public myminio/test-cases; exit 0;"
+    networks: [exam-network]
 
 networks:
   exam-network:
     driver: bridge
-
-volumes:
-  minio_data:
-  postgres_data:
-  redis_data:
