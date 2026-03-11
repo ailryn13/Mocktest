@@ -105,14 +105,18 @@ export default function ExamDetailPage() {
 
   // Auth guard
   useEffect(() => {
-    if (!loading && (!user || user.role !== "MEDIATOR")) {
-      router.replace("/login");
+    if (!loading) {
+      const role = user?.role?.toUpperCase();
+      if (!user || (role !== "MEDIATOR" && role !== "MODERATOR")) {
+        router.replace("/login");
+      }
     }
   }, [user, loading, router]);
 
   // Load exam meta + questions on mount
   useEffect(() => {
-    if (user && user.role === "MEDIATOR") {
+    const role = user?.role?.toUpperCase();
+    if (user && (role === "MEDIATOR" || role === "MODERATOR")) {
       loadExam();
       loadQuestions();
     }
@@ -633,7 +637,8 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
   }
 
   if (loading) return null;
-  if (!user || user.role !== "MEDIATOR") return null;
+  const userRole = user?.role?.toUpperCase();
+  if (!user || (userRole !== "MEDIATOR" && userRole !== "MODERATOR")) return null;
 
   const tabClass = (t: Tab) =>
     `px-4 py-2 text-sm font-medium rounded-t-lg cursor-pointer transition-colors ${

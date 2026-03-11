@@ -18,13 +18,17 @@ export default function CreateExamPage() {
   const [error, setError]                     = useState("");
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== "MEDIATOR")) {
-      router.replace("/login");
+    if (!loading) {
+      const role = user?.role?.toUpperCase();
+      if (!user || (role !== "MEDIATOR" && role !== "MODERATOR")) {
+        router.replace("/login");
+      }
     }
   }, [user, loading, router]);
 
   if (loading) return null;
-  if (!user || user.role !== "MEDIATOR") return null;
+  const userRole = user?.role?.toUpperCase();
+  if (!user || (userRole !== "MEDIATOR" && userRole !== "MODERATOR")) return null;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
