@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       case "ADMIN":
         router.push("/admin");
         break;
-      case "MODERATOR":
+      case "MEDIATOR":
         router.push("/mediator");
         break;
       case "STUDENT":
