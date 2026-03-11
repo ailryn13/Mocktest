@@ -68,8 +68,8 @@ public class DataSeeder implements CommandLineRunner {
             User user = existingUser.get();
             boolean updated = false;
 
-            if (user.getRole() != Role.SUPER_ADMIN) {
-                user.setRole(Role.SUPER_ADMIN);
+            if (user.getRole() != Role.ADMIN) {
+                user.setRole(Role.ADMIN);
                 updated = true;
             }
 
@@ -96,12 +96,12 @@ public class DataSeeder implements CommandLineRunner {
                 adminName,
                 adminEmail,
                 passwordEncoder.encode(adminPassword),
-                Role.SUPER_ADMIN,
+                Role.ADMIN,
                 null   // admin has no department
         );
 
         userRepository.save(admin);
-        log.info("Default SUPER_ADMIN user created: {} / {}", adminEmail, adminPassword);
+        log.info("Default ADMIN user created: {} / {}", adminEmail, adminPassword);
     }
 
     private void seedDepartments() {
