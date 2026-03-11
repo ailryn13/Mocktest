@@ -84,6 +84,11 @@ public class QuestionService {
         int index = 1;
 
         for (QuestionDTO dto : questionDTOs) {
+            if (dto == null) {
+                log.warn("Null QuestionDTO encountered at index {}", index);
+                index++;
+                continue;
+            }
             try {
                 Question question = mapToEntity(dto);
                 question.setDepartment(department);
@@ -94,7 +99,6 @@ public class QuestionService {
                 result.getQuestionIds().add(question.getId());
                 result.setSuccessCount(result.getSuccessCount() + 1);
             } catch (Exception e) {
-                result.getErrorCount(); // Just to avoid unused warning if any
                 result.setErrorCount(result.getErrorCount() + 1);
                 result.addError(index, e.getMessage());
                 log.error("Error creating question at index {}: {}", index, e.getMessage());

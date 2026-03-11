@@ -74,8 +74,8 @@ class AuthServiceImplTest {
         // Assert
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
-        assertEquals("STUDENT", response.getRole());
-        assertEquals("John Doe", response.getName());
+        assertEquals(java.util.List.of("STUDENT"), response.getRoles());
+        assertEquals("John Doe", response.getFullName());
         verify(authManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
 

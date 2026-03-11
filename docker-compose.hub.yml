@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     build: ./backend
-    image: exam-portal-backend:latest
+    image: ganesh200504/mocktest-backend:latest
     container_name: exam-portal-backend
     ports:
       - "9090:8080"

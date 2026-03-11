@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,7 +44,7 @@ public class PasswordResetService {
     public PasswordResetService(UserRepository userRepository,
                                 PasswordResetTokenRepository tokenRepository,
                                 PasswordEncoder passwordEncoder,
-                                JavaMailSender mailSender) {
+                                @Autowired(required = false) JavaMailSender mailSender) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
@@ -119,6 +120,11 @@ public class PasswordResetService {
                 "Thanks,\nThe MockTest Team"
         );
 
+        if (mailSender == null) {
+            log.warn("Mail sender not configured. Password reset link (for development): {}", resetLink);
+            return;
+        }
+        
         try {
             mailSender.send(message);
             log.info("Password reset email sent to: {}", user.getEmail());

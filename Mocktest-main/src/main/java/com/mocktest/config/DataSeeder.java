@@ -20,9 +20,9 @@ import java.util.List;
  *
  * <p>Credentials are configurable via application.properties:</p>
  * <pre>
- *   app.admin.email=admin@mocktest.com
- *   app.admin.password=admin123
- *   app.admin.name=Admin
+ *   app.admin.email=superadmin@mocktest.app
+ *   app.admin.password=SuperAdmin@123456
+ *   app.admin.name=SuperAdmin
  * </pre>
  */
 @Component
@@ -43,13 +43,13 @@ public class DataSeeder implements CommandLineRunner {
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.admin.email:admin@mocktest.com}")
+    @Value("${app.admin.email:superadmin@mocktest.app}")
     private String adminEmail;
 
-    @Value("${app.admin.password:admin123}")
+    @Value("${app.admin.password:SuperAdmin@123456}")
     private String adminPassword;
 
-    @Value("${app.admin.name:Admin}")
+    @Value("${app.admin.name:SuperAdmin}")
     private String adminName;
 
     public DataSeeder(UserRepository userRepository,
@@ -68,8 +68,8 @@ public class DataSeeder implements CommandLineRunner {
             User user = existingUser.get();
             boolean updated = false;
 
-            if (user.getRole() != Role.ADMIN) {
-                user.setRole(Role.ADMIN);
+            if (user.getRole() != Role.SUPER_ADMIN) {
+                user.setRole(Role.SUPER_ADMIN);
                 updated = true;
             }
 
@@ -96,12 +96,12 @@ public class DataSeeder implements CommandLineRunner {
                 adminName,
                 adminEmail,
                 passwordEncoder.encode(adminPassword),
-                Role.ADMIN,
+                Role.SUPER_ADMIN,
                 null   // admin has no department
         );
 
         userRepository.save(admin);
-        log.info("Default ADMIN user created: {} / {}", adminEmail, adminPassword);
+        log.info("Default SUPER_ADMIN user created: {} / {}", adminEmail, adminPassword);
     }
 
     private void seedDepartments() {

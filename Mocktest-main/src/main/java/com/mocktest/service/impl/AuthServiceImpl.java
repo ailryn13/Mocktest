@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
         String token = tokenProvider.generateToken(
                 user.getEmail(), user.getRole().name());
 
-        return new LoginResponse(token, user.getRole().name(), user.getName());
+        return new LoginResponse(token, java.util.List.of(user.getRole().name()), user.getName());
     }
 
     @Override

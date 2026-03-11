@@ -15,9 +15,9 @@ spring:
 
   # PostgreSQL Configuration
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mocktest_db}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/exam_portal_db}
+    username: ${SPRING_DATASOURCE_USERNAME:exam_admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:SecurePassword123!}
     driver-class-name: org.postgresql.Driver
     
     # HikariCP Connection Pool Configuration
@@ -48,8 +48,8 @@ spring:
   # Redis Configuration
   data:
     redis:
-      host: ${SPRING_REDIS_HOST:localhost}
-      port: ${SPRING_REDIS_PORT:6379}
+      host: ${SPRING_REDIS_HOST:${SPRING_DATA_REDIS_HOST:localhost}}
+      port: ${SPRING_REDIS_PORT:${SPRING_DATA_REDIS_PORT:6379}}
       timeout: 2000ms
       lettuce:
         pool:
@@ -128,6 +128,9 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    mail:
+      enabled: false
   metrics:
     export:
       prometheus:

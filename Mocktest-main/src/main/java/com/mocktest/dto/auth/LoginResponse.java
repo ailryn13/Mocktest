@@ -1,25 +1,27 @@
 package com.mocktest.dto.auth;
 
+import java.util.List;
+
 public class LoginResponse {
 
     private String token;
-    private String role;
-    private String name;
+    private List<String> roles;
+    private String fullName;
 
     public LoginResponse() {}
 
-    public LoginResponse(String token, String role, String name) {
+    public LoginResponse(String token, List<String> roles, String fullName) {
         this.token = token;
-        this.role = role;
-        this.name = name;
+        this.roles = roles;
+        this.fullName = fullName;
     }
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public List<String> getRoles() { return roles; }
+    public void setRoles(List<String> roles) { this.roles = roles; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 }

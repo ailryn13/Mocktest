@@ -16,7 +16,7 @@ services:
     networks:
       - exam-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U exam_admin" ]
+      test: [ "CMD-SHELL", "pg_isready -U exam_admin -d exam_portal_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -72,7 +72,7 @@ services:
     networks:
       - exam-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U judge0" ]
+      test: [ "CMD-SHELL", "pg_isready -U judge0 -d judge0" ]
       interval: 10s
       timeout: 5s
       retries: 5

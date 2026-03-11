@@ -130,12 +130,19 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
-                log.error("Unhandled exception", ex);
+                log.error("Unhandled exception: ", ex);
 
+                // Provide localized stack trace hint in message for better remote debugging
+                String stackTraceSnippet = "";
+                if (ex.getStackTrace() != null && ex.getStackTrace().length > 0) {
+                        stackTraceSnippet = " at " + ex.getStackTrace()[0].toString();
+                }
+
+                String causeMsg = ex.getCause() != null ? " [Cause: " + ex.getCause().getMessage() + "]" : "";
                 ErrorResponse error = ErrorResponse.builder()
                                 .error("INTERNAL_SERVER_ERROR")
-                                .message("An unexpected error occurred: " + ex.getClass().getName() + " - "
-                                                + ex.getMessage())
+                                .message("An unexpected error occurred: " + ex.getClass().getSimpleName() + " - "
+                                                + ex.getMessage() + causeMsg + stackTraceSnippet)
                                 .timestamp(LocalDateTime.now())
                                 .path(request.getDescription(false).replace("uri=", ""))
                                 .build();

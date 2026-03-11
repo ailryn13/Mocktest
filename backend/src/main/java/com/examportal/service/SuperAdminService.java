@@ -42,12 +42,18 @@ public class SuperAdminService {
                     String adminEmail = null;
                     String adminName = null;
                     
-                    if (!admins.isEmpty()) {
-                        User admin = admins.get(0); // Get first admin
-                        adminEmail = admin.getEmail();
-                        adminName = (admin.getFirstName() != null ? admin.getFirstName() : "") + 
-                                   (admin.getLastName() != null ? " " + admin.getLastName() : "");
-                        adminName = adminName.trim().isEmpty() ? admin.getEmail() : adminName.trim();
+                    if (admins != null && !admins.isEmpty()) {
+                        User admin = admins.get(0);
+                        if (admin != null) {
+                            adminEmail = admin.getEmail();
+                            String firstName = admin.getFirstName() != null ? admin.getFirstName().trim() : "";
+                            String lastName = admin.getLastName() != null ? admin.getLastName().trim() : "";
+                            
+                            adminName = (firstName + " " + lastName).trim();
+                            if (adminName.isEmpty()) {
+                                adminName = adminEmail;
+                            }
+                        }
                     }
                     
                     return CollegeResponse.fromEntity(college, adminEmail, adminName);

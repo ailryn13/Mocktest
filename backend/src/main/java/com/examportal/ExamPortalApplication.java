@@ -2,6 +2,7 @@ package com.examportal;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -19,7 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * - Department-level RBAC
  */
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {MailSenderAutoConfiguration.class})
 @EnableFeignClients
 @EnableJpaAuditing
 @EnableAsync

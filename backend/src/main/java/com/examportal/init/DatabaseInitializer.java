@@ -12,6 +12,7 @@ import com.examportal.repository.TestRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Database Initializer
@@ -41,13 +42,46 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
         // cleanupLegacyRoles(); // Disabled - ADMIN role is now used
         initializeRoles();
+        initializeSuperAdminUser();
         initializeModeratorUser();
         initializeTestStudent();
         resetSampleTests();
         log.info("Database initialization complete!");
+    }
+
+    private void initializeSuperAdminUser() {
+        String superAdminEmail = "superadmin@mocktest.app";
+
+        Role superAdminRole = roleRepository.findByName(Role.SUPER_ADMIN)
+                .orElseThrow(() -> new RuntimeException("SUPER_ADMIN role not found"));
+
+        User superAdmin = userRepository.findByEmail(superAdminEmail).orElse(null);
+
+        if (superAdmin == null) {
+            superAdmin = new User();
+            superAdmin.setUsername("superadmin");
+            superAdmin.setEmail(superAdminEmail);
+            superAdmin.setPassword(passwordEncoder.encode("SuperAdmin@123456"));
+            superAdmin.setFirstName("Super");
+            superAdmin.setLastName("Admin");
+            superAdmin.setDepartment("System");
+            superAdmin.setEnabled(true);
+            superAdmin.setCollege(null); // SUPER_ADMIN has no college
+
+            UserRole userRole = new UserRole();
+            userRole.setUser(superAdmin);
+            userRole.setRole(superAdminRole);
+            superAdmin.getUserRoles().add(userRole);
+
+            userRepository.save(superAdmin);
+            log.info("Created SUPER_ADMIN user - Email: {}, Password: SuperAdmin@123456", superAdminEmail);
+        } else {
+            log.info("SUPER_ADMIN user already exists: {}", superAdminEmail);
+        }
     }
 
     private void cleanupLegacyRoles() {

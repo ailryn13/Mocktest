@@ -67,8 +67,9 @@ else {
         $backendJar = "app.jar"
         try {
             # Start in a new window so logs are visible (or minimized)
-            Start-Process "java" -ArgumentList "-jar", "$backendJar", "--server.port=9090" -WorkingDirectory "$PSScriptRoot\backend"
-            Write-Success "Backend JAR launched on port 9090."
+            $jvmOpts = "-Xms256m -Xmx1024m -XX:+UseG1GC"
+            Start-Process "java" -ArgumentList "$jvmOpts", "-jar", "$backendJar", "--server.port=9090" -WorkingDirectory "$PSScriptRoot\backend"
+            Write-Success "Backend JAR launched on port 9090 with optimized memory settings."
         }
         catch {
             Write-Error "Failed to start backend JAR"

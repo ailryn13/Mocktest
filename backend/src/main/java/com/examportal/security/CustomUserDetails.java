@@ -7,10 +7,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import lombok.extern.slf4j.Slf4j;
+import com.examportal.entity.Role;
+
 import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Data
 public class CustomUserDetails implements UserDetails {
 
@@ -84,14 +90,43 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<UserRole> roles = this.user.getUserRoles();
-        if (roles == null) {
+        if (this.user == null) {
+            log.error("[AUTH] User object is NULL in CustomUserDetails");
             return java.util.Collections.emptyList();
         }
-        return roles.stream()
-                .filter(ur -> ur.getRole() != null && ur.getRole().getRoleName() != null)
-                .map(role -> new SimpleGrantedAuthority(role.getRole().getRoleName()))
-                .collect(Collectors.toList());
+
+        Set<UserRole> roles = this.user.getUserRoles();
+        if (roles == null) {
+            log.warn("[AUTH] UserRoles set is NULL for user: {}", user.getEmail());
+            return java.util.Collections.emptyList();
+        }
+
+        List<GrantedAuthority> authorities = new java.util.ArrayList<>();
+        try {
+            for (UserRole ur : roles) {
+                if (ur == null) {
+                    log.error("[AUTH] Found NULL UserRole in set for user: {}", user.getEmail());
+                    continue;
+                }
+                Role role = ur.getRole();
+                if (role == null) {
+                    log.error("[AUTH] UserRole has NULL role for user: {}", user.getEmail());
+                    continue;
+                }
+                String roleName = role.getName();
+                if (roleName == null) {
+                    log.error("[AUTH] Role has NULL name for user: {}", user.getEmail());
+                    continue;
+                }
+                authorities.add(new SimpleGrantedAuthority(roleName));
+                log.debug("[AUTH] Added authority: {} for user: {}", roleName, user.getEmail());
+            }
+        } catch (Exception e) {
+            log.error("[AUTH] Unexpected error while processing authorities for user: {}", user.getEmail(), e);
+            throw new RuntimeException("Error processing authorities: " + e.getMessage(), e);
+        }
+
+        return authorities;
     }
 
     @Override
