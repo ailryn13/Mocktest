@@ -65,8 +65,10 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                     "stdin", b64Encode(stdin != null ? stdin : "")
             ));
 
+            // Increase wait timeout for Java compilation
+            String judgeUrl = apiUrl + "/submissions?base64_encoded=true&wait=true&fields=*";
             HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(apiUrl + "/submissions?base64_encoded=true&wait=true"))
+                    .uri(URI.create(judgeUrl))
                     .header("Content-Type", "application/json")
                     .timeout(Duration.ofSeconds(30))
                     .POST(HttpRequest.BodyPublishers.ofString(body));
@@ -80,6 +82,8 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
             HttpResponse<String> response = httpClient.send(
                     reqBuilder.build(),
                     HttpResponse.BodyHandlers.ofString());
+            
+            log.info("[DEBUG] Judge0 HTTP {}: {}", response.statusCode(), response.body());
 
             JsonNode json = mapper.readTree(response.body());
 
