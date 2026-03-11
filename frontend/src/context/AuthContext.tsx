@@ -69,19 +69,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     setUser(loggedInUser);
 
-    // Redirect based on role
-    switch (primaryRole) {
-      case "ADMIN":
-        router.push("/admin");
-        break;
-      case "MEDIATOR":
-        router.push("/mediator");
-        break;
-      case "STUDENT":
-        router.push("/student");
-        break;
-      default:
-        router.push("/");
+    // Redirect based on role (Case insensitive + support MODERATOR fallback)
+    const roleUpper = primaryRole.toUpperCase();
+    
+    if (roleUpper === "ADMIN") {
+      router.push("/admin");
+    } else if (roleUpper === "MEDIATOR" || roleUpper === "MODERATOR") {
+      router.push("/mediator");
+    } else if (roleUpper === "STUDENT") {
+      router.push("/student");
+    } else {
+      router.push("/");
     }
   };
 
