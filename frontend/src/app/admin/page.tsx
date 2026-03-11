@@ -35,11 +35,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!loading) {
       if (!user || user.role !== "ADMIN") {
-        if (user?.role === "SUPER_ADMIN") {
-          router.replace("/superadmin");
-        } else {
-          router.replace("/login");
-        }
+        router.replace("/login");
       }
     }
   }, [user, loading, router]);
