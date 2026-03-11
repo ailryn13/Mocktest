@@ -19,4 +19,10 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
     /** Active exams filtered by mediator's department. */
     List<Exam> findByStartTimeBeforeAndEndTimeAfterAndMediatorDepartmentId(
             LocalDateTime now1, LocalDateTime now2, Long departmentId);
+
+    /** Exams that haven't ended yet. */
+    List<Exam> findByEndTimeAfter(LocalDateTime now);
+
+    /** Exams that haven't ended yet for a specific department. */
+    List<Exam> findByEndTimeAfterAndMediatorDepartmentId(LocalDateTime now, Long departmentId);
 }

@@ -70,23 +70,17 @@ public class ExamServiceImpl implements ExamService {
 
         log.info("[DEBUG] Fetching exams for student: {} (DeptID: {}). Server Time: {}", studentEmail, deptId, now);
 
-        // Fetch all exams active by TIME window first to see what's available
-        List<Exam> timeActiveExams = examRepository.findByStartTimeBeforeAndEndTimeAfter(now, now);
-        log.info("[DEBUG] Found {} exams active by time window.", timeActiveExams.size());
-
-        for (Exam e : timeActiveExams) {
-            Long medDeptId = (e.getMediator().getDepartment() != null) ? e.getMediator().getDepartment().getId() : null;
-            log.info("[DEBUG] Exam '{}' (ID: {}) - Mediator DeptID: {}. Match with Student DeptID ({}): {}", 
-                e.getTitle(), e.getId(), medDeptId, deptId, (deptId != null && deptId.equals(medDeptId)));
-        }
+        // Fetch all exams that haven't ended yet (includes upcoming)
+        List<Exam> exams = examRepository.findByEndTimeAfter(now);
+        log.info("[DEBUG] Found {} exams that haven't ended yet.", exams.size());
 
         if (deptId == null) {
             log.warn("[DEBUG] Student {} has NO department. Returning empty list.", studentEmail);
             return List.of();
         }
 
-        // Return the filtered list
-        return timeActiveExams.stream()
+        // Return list filtered by matching department
+        return exams.stream()
                 .filter(e -> e.getMediator().getDepartment() != null && e.getMediator().getDepartment().getId().equals(deptId))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
