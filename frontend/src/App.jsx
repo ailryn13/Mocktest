@@ -12,6 +12,7 @@ import TestAnalyticsPage from './pages/TestAnalyticsPage'
 import StudentHistoryPage from './pages/StudentHistoryPage'
 import TestTakingPage from './pages/TestTakingPage'
 import TestReviewPage from './pages/TestReviewPage'
+import LandingPage from './pages/LandingPage'
 import TestBuilder from './components/TestBuilder'
 import { useAuthStore } from './store/authStore'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -139,7 +140,7 @@ function App() {
             }
           />
           <Route path="/exam-terminated" element={<ExamTerminated />} />
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<LandingPage />} />
         </Routes>
       </ErrorBoundary>
     </BrowserRouter>
