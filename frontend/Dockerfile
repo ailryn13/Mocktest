@@ -1,36 +1,46 @@
-# Multi-stage build for React frontend
-FROM node:18-alpine AS builder
+# ===========================================================
+#  Frontend Dockerfile – Next.js (standalone, multi-stage)
+# ===========================================================
 
+# ---------- Stage 1: Install dependencies ----------
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy source
+# ---------- Stage 2: Build ----------
+FROM node:20-alpine AS build
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build for production
+# Bake the backend API URL at build time.
+# Use /api so requests go through Nginx reverse-proxy (works in any environment).
+# Override with --build-arg NEXT_PUBLIC_API_URL=... if a direct URL is needed.
+ARG NEXT_PUBLIC_API_URL=/api
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 RUN npm run build
 
-# ============================================
-# Production image with Nginx
-# ============================================
-FROM nginx:1.25-alpine
+# ---------- Stage 3: Run ----------
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Copy built files
-COPY --from=builder /app/dist /usr/share/nginx/html
+ENV NODE_ENV=production
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Expose port
-EXPOSE 80
+# Copy standalone server + static assets + public folder
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
+RUN chown -R appuser:appgroup /app
+USER appuser
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+
+CMD ["node", "server.js"]
