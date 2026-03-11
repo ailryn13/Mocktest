@@ -4,6 +4,8 @@ import com.mocktest.dto.code.CodeExecutionRequest;
 import com.mocktest.dto.code.CodeExecutionResult;
 import com.mocktest.service.CodeExecutionService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/student/code")
 public class CodeExecutionController {
+
+    private static final Logger log = LoggerFactory.getLogger(CodeExecutionController.class);
 
     private final CodeExecutionService codeExecutionService;
 
@@ -29,10 +33,15 @@ public class CodeExecutionController {
     @PostMapping("/run")
     public ResponseEntity<CodeExecutionResult> runCode(
             @Valid @RequestBody CodeExecutionRequest request) {
+        
+        log.info("[DEBUG] Received runCode request for language: {}", request.getLanguage());
+        
         CodeExecutionResult result = codeExecutionService.execute(
                 request.getSourceCode(),
                 request.getLanguage(),
                 request.getStdin());
+                
+        log.info("[DEBUG] Returning execution result with status code: {}", result.getStatusId());
         return ResponseEntity.ok(result);
     }
 }
