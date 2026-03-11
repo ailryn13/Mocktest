@@ -32,8 +32,6 @@ services:
     restart: unless-stopped
     # No host port needed – backend calls judge0-server via Docker internal network
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     env_file: judge0.conf
     depends_on:
       judge0-db:
@@ -47,8 +45,6 @@ services:
     restart: unless-stopped
     command: ["./scripts/workers"]
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     env_file: judge0.conf
     depends_on:
       judge0-db:
