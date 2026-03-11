@@ -7,6 +7,8 @@ import com.mocktest.exception.BadRequestException;
 import com.mocktest.service.CodeExecutionService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,6 +28,8 @@ import java.util.Map;
  */
 @Service
 public class Judge0CodeExecutionService implements CodeExecutionService {
+
+    private static final Logger log = LoggerFactory.getLogger(Judge0CodeExecutionService.class);
 
     private final String apiUrl;
     private final String apiKey;     // optional – for RapidAPI hosted Judge0
@@ -108,9 +112,16 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
+            log.error("[DEBUG] Judge0 execution failed. Source: {}, Lang: {}, API: {}", sourceCode, language, apiUrl, e);
             CodeExecutionResult errorResult = new CodeExecutionResult();
             errorResult.setStatusId(-1);
-            errorResult.setStatusDescription("Execution service error: " + e.getMessage());
+            
+            // Build a better error message avoiding "null"
+            String errMsg = e.getMessage();
+            if (errMsg == null) {
+                errMsg = e.getClass().getSimpleName() + " (NullPointerException)";
+            }
+            errorResult.setStatusDescription("Execution service error: " + errMsg);
             errorResult.setPassed(false);
             return errorResult;
         }
