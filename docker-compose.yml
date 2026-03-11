@@ -28,6 +28,7 @@ services:
   # Judge0 API server
   judge0-server:
     image: judge0/judge0:1.13.0
+    command: ["./scripts/server"]
     restart: unless-stopped
     # No host port needed – backend calls judge0-server via Docker internal network
     privileged: true
