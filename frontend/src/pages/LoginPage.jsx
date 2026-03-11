@@ -69,7 +69,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-950">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow"></div>
@@ -82,8 +82,8 @@ export default function LoginPage() {
         <div className="backdrop-blur-xl bg-white/10 p-8 rounded-2xl shadow-glass border border-white/20">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Exam Portal
+            <h1 className="text-4xl font-bold text-white tracking-tight">
+              Mock<span className="text-blue-500">Test</span>
             </h1>
           </div>
 
@@ -169,7 +169,7 @@ export default function LoginPage() {
                     Authenticating...
                   </>
                 ) : (
-                  'Start Exam'
+                  'Sign In'
                 )}
               </span>
             </button>
