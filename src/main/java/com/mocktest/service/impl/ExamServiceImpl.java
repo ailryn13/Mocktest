@@ -13,12 +13,14 @@ import com.mocktest.service.ExamService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @SuppressWarnings("null")
 public class ExamServiceImpl implements ExamService {
 
@@ -33,6 +35,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Transactional
     public ExamResponse create(ExamRequest request, String mediatorEmail) {
         User mediator = findUserByEmail(mediatorEmail);
         ExamType examType = parseExamType(request.getExamType());
@@ -81,6 +84,11 @@ public class ExamServiceImpl implements ExamService {
 
         // Return list filtered by matching department
         return exams.stream()
+                .peek(e -> {
+                    Long medDeptId = (e.getMediator().getDepartment() != null) ? e.getMediator().getDepartment().getId() : null;
+                    log.info("[DEBUG] Check Exam '{}' (ID: {}). Mediator Dept: {}. Match student Dept ({}): {}", 
+                        e.getTitle(), e.getId(), medDeptId, deptId, (deptId != null && deptId.equals(medDeptId)));
+                })
                 .filter(e -> e.getMediator().getDepartment() != null && e.getMediator().getDepartment().getId().equals(deptId))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
