@@ -10,6 +10,8 @@ import com.mocktest.models.enums.ExamType;
 import com.mocktest.repositories.ExamRepository;
 import com.mocktest.repositories.UserRepository;
 import com.mocktest.service.ExamService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 @Service
 @SuppressWarnings("null")
 public class ExamServiceImpl implements ExamService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamServiceImpl.class);
 
     private final ExamRepository examRepository;
     private final UserRepository userRepository;
@@ -62,13 +66,30 @@ public class ExamServiceImpl implements ExamService {
     public List<ExamResponse> getActiveExamsForStudent(String studentEmail) {
         User student = findUserByEmail(studentEmail);
         Long deptId = student.getDepartment() != null ? student.getDepartment().getId() : null;
-        if (deptId == null) {
-            return List.of(); // student without department sees no exams
-        }
         LocalDateTime now = LocalDateTime.now();
-        return examRepository
-                .findByStartTimeBeforeAndEndTimeAfterAndMediatorDepartmentId(now, now, deptId)
-                .stream().map(this::toResponse).collect(Collectors.toList());
+
+        log.info("[DEBUG] Fetching exams for student: {} (DeptID: {}). Server Time: {}", studentEmail, deptId, now);
+
+        // Fetch all exams active by TIME window first to see what's available
+        List<Exam> timeActiveExams = examRepository.findByStartTimeBeforeAndEndTimeAfter(now, now);
+        log.info("[DEBUG] Found {} exams active by time window.", timeActiveExams.size());
+
+        for (Exam e : timeActiveExams) {
+            Long medDeptId = (e.getMediator().getDepartment() != null) ? e.getMediator().getDepartment().getId() : null;
+            log.info("[DEBUG] Exam '{}' (ID: {}) - Mediator DeptID: {}. Match with Student DeptID ({}): {}", 
+                e.getTitle(), e.getId(), medDeptId, deptId, (deptId != null && deptId.equals(medDeptId)));
+        }
+
+        if (deptId == null) {
+            log.warn("[DEBUG] Student {} has NO department. Returning empty list.", studentEmail);
+            return List.of();
+        }
+
+        // Return the filtered list
+        return timeActiveExams.stream()
+                .filter(e -> e.getMediator().getDepartment() != null && e.getMediator().getDepartment().getId().equals(deptId))
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
