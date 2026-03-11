@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
@@ -73,19 +73,19 @@ export default function MediatorDashboard() {
 
   // Auth guard
   useEffect(() => {
-    if (!loading && (!user || user.role !== "MODERATOR")) {
+    if (!loading && (!user || user.role !== "MEDIATOR")) {
       router.replace("/login");
     }
   }, [user, loading, router]);
 
   // Fetch exams
   useEffect(() => {
-    if (user && user.role === "MODERATOR") loadExams();
+    if (user && user.role === "MEDIATOR") loadExams();
   }, [user]);
 
   // Fetch students + departments when tab is opened
   useEffect(() => {
-    if (activeTab === "students" && user && user.role === "MODERATOR" && !studentsLoaded) {
+    if (activeTab === "students" && user && user.role === "MEDIATOR" && !studentsLoaded) {
       loadStudents();
     }
   }, [activeTab, user]);
@@ -217,7 +217,7 @@ export default function MediatorDashboard() {
   }
 
   if (loading) return null;
-  if (!user || user.role !== "MODERATOR") return null;
+  if (!user || user.role !== "MEDIATOR") return null;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
