@@ -2,6 +2,7 @@ package com.mocktest.controller;
 
 import com.mocktest.dto.malpractice.MalpracticeLogResponse;
 import com.mocktest.dto.submission.SubmissionResponse;
+import com.mocktest.service.ExportService;
 import com.mocktest.service.MalpracticeService;
 import com.mocktest.service.SubmissionService;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +19,24 @@ public class ReportController {
 
     private final SubmissionService submissionService;
     private final MalpracticeService malpracticeService;
+    private final ExportService exportService;
 
     public ReportController(SubmissionService submissionService,
-                            MalpracticeService malpracticeService) {
+                            MalpracticeService malpracticeService,
+                            ExportService exportService) {
         this.submissionService = submissionService;
         this.malpracticeService = malpracticeService;
+        this.exportService = exportService;
+    }
+
+    @GetMapping("/exams/{examId}/export")
+    public ResponseEntity<byte[]> exportExamScores(@PathVariable Long examId) throws java.io.IOException {
+        byte[] excelContent = exportService.exportExamScores(examId);
+        
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .header("Content-Disposition", "attachment; filename=exam_" + examId + "_scores.xlsx")
+                .body(excelContent);
     }
 
     @GetMapping("/submissions/exam/{examId}")

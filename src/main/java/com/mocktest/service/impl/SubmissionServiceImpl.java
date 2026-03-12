@@ -206,6 +206,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                 s.getId(),
                 s.getUser().getId(),
                 s.getUser().getName(),
+                s.getUser().getRegisterNumber(),
                 s.getExam().getId(),
                 s.getExam().getTitle(),
                 s.getScore(),

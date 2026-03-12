@@ -26,6 +26,9 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "register_number", unique = true)
+    private String registerNumber;
+
     /**
      * Stored as a VARCHAR in PostgreSQL (e.g. "ADMIN", "MEDIATOR", "STUDENT")
      * thanks to {@code EnumType.STRING}.
@@ -104,5 +107,13 @@ public class User {
 
     public void setDepartment(Department department) {
         this.department = department;
+    }
+
+    public String getRegisterNumber() {
+        return registerNumber;
+    }
+
+    public void setRegisterNumber(String registerNumber) {
+        this.registerNumber = registerNumber;
     }
 }

@@ -11,15 +11,17 @@ public class SubmissionResponse {
     private String examTitle;
     private Double score;
     private LocalDateTime submittedAt;
+    private String registerNumber;
 
     public SubmissionResponse() {}
 
-    public SubmissionResponse(Long id, Long userId, String userName,
+    public SubmissionResponse(Long id, Long userId, String userName, String registerNumber,
                               Long examId, String examTitle,
                               Double score, LocalDateTime submittedAt) {
         this.id = id;
         this.userId = userId;
         this.userName = userName;
+        this.registerNumber = registerNumber;
         this.examId = examId;
         this.examTitle = examTitle;
         this.score = score;
@@ -46,4 +48,7 @@ public class SubmissionResponse {
 
     public LocalDateTime getSubmittedAt() { return submittedAt; }
     public void setSubmittedAt(LocalDateTime submittedAt) { this.submittedAt = submittedAt; }
+
+    public String getRegisterNumber() { return registerNumber; }
+    public void setRegisterNumber(String registerNumber) { this.registerNumber = registerNumber; }
 }

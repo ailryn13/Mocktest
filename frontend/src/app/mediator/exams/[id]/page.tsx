@@ -36,6 +36,7 @@ interface Submission {
   id: number;
   userId: number;
   userName: string;
+  registerNumber: string | null;
   examId: number;
   examTitle: string;
   score: number;
@@ -102,6 +103,9 @@ export default function ExamDetailPage() {
   // Malpractice state
   const [malpractice, setMalpractice] = useState<MalpracticeLog[]>([]);
   const [loadingMal, setLoadingMal] = useState(false);
+
+  // Export state
+  const [exporting, setExporting] = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -175,6 +179,35 @@ export default function ExamDetailPage() {
     setActiveTab(tab);
     if (tab === "submissions" && submissions.length === 0) loadSubmissions();
     if (tab === "malpractice" && malpractice.length === 0) loadMalpractice();
+  }
+
+  async function handleExportScores() {
+    setExporting(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api"}/mediator/reports/exams/${examId}/export`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error("Export failed");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `exam_${examId}_scores.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to export scores");
+    } finally {
+      setExporting(false);
+    }
   }
 
   // Question form helpers
@@ -1316,6 +1349,20 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
           {/* ====== SUBMISSIONS TAB ====== */}
           {activeTab === "submissions" && (
             <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-base font-semibold text-white">Exam Submissions</h2>
+                <button
+                  onClick={handleExportScores}
+                  disabled={exporting || submissions.length === 0}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-xs font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {exporting ? "Exporting..." : "Download Excel Report"}
+                </button>
+              </div>
+
               {loadingSub ? (
                 <p className="text-gray-500 text-sm">Loading submissions...</p>
               ) : submissions.length === 0 ? (
@@ -1325,6 +1372,7 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                   <thead>
                     <tr className="border-b border-gray-800">
                       <th className="pb-2 text-gray-400 text-sm font-medium">Student</th>
+                      <th className="pb-2 text-gray-400 text-sm font-medium">Register No</th>
                       <th className="pb-2 text-gray-400 text-sm font-medium">Score</th>
                       <th className="pb-2 text-gray-400 text-sm font-medium">Submitted At</th>
                     </tr>
@@ -1332,13 +1380,14 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                   <tbody>
                     {submissions.map((s) => (
                       <tr key={s.id} className="border-b border-gray-800/50">
-                        <td className="py-3">{s.userName}</td>
+                        <td className="py-3 text-gray-100">{s.userName}</td>
+                        <td className="py-3 text-gray-400 text-sm">{s.registerNumber || "N/A"}</td>
                         <td className="py-3">
-                          <span className={s.score >= 50 ? "text-green-400" : "text-red-400"}>
+                          <span className={s.score >= 50 ? "text-green-400 font-medium" : "text-red-400 font-medium"}>
                             {s.score}%
                           </span>
                         </td>
-                        <td className="py-3 text-gray-400 text-sm">
+                        <td className="py-3 text-gray-500 text-sm">
                           {new Date(s.submittedAt).toLocaleString("en-IN")}
                         </td>
                       </tr>
