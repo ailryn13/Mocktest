@@ -88,7 +88,7 @@ class QuestionServiceImplTest {
         when(questionRepository.save(any(Question.class))).thenReturn(testQuestion);
 
         // Act
-        QuestionResponse response = questionService.create(request);
+        QuestionResponse response = questionService.create(request, "med@test.com");
 
         // Assert
         assertEquals(1L, response.getId());
@@ -108,7 +108,7 @@ class QuestionServiceImplTest {
         when(examRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> questionService.create(request));
+        assertThrows(ResourceNotFoundException.class, () -> questionService.create(request, "med@test.com"));
     }
 
     @Test
@@ -117,7 +117,7 @@ class QuestionServiceImplTest {
         when(questionRepository.findByExamId(1L)).thenReturn(Arrays.asList(testQuestion));
 
         // Act
-        List<QuestionResponse> result = questionService.getByExamId(1L);
+        List<QuestionResponse> result = questionService.getByExamId(1L, "med@test.com");
 
         // Assert
         assertEquals(1, result.size());
@@ -161,7 +161,7 @@ class QuestionServiceImplTest {
         when(questionRepository.save(any(Question.class))).thenReturn(updated);
 
         // Act
-        QuestionResponse response = questionService.update(1L, request);
+        QuestionResponse response = questionService.update(1L, request, "med@test.com");
 
         // Assert
         assertEquals("CODING", response.getType());
@@ -176,7 +176,7 @@ class QuestionServiceImplTest {
         when(questionRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> questionService.update(999L, request));
+        assertThrows(ResourceNotFoundException.class, () -> questionService.update(999L, request, "med@test.com"));
     }
 
     @Test
@@ -185,7 +185,7 @@ class QuestionServiceImplTest {
         when(questionRepository.existsById(1L)).thenReturn(true);
 
         // Act
-        questionService.delete(1L);
+        questionService.delete(1L, "med@test.com");
 
         // Assert
         verify(questionRepository).deleteById(1L);
@@ -197,6 +197,6 @@ class QuestionServiceImplTest {
         when(questionRepository.existsById(999L)).thenReturn(false);
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> questionService.delete(999L));
+        assertThrows(ResourceNotFoundException.class, () -> questionService.delete(999L, "med@test.com"));
     }
 }

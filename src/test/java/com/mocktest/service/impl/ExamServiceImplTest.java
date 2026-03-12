@@ -139,7 +139,7 @@ class ExamServiceImplTest {
         when(examRepository.findById(1L)).thenReturn(Optional.of(testExam));
 
         // Act
-        ExamResponse response = examService.getById(1L);
+        ExamResponse response = examService.getById(1L, "mediator@test.com");
 
         // Assert
         assertEquals(1L, response.getId());
@@ -152,7 +152,7 @@ class ExamServiceImplTest {
         when(examRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> examService.getById(999L));
+        assertThrows(ResourceNotFoundException.class, () -> examService.getById(999L, "mediator@test.com"));
     }
 
     @Test
