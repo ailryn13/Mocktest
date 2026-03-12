@@ -7,6 +7,8 @@ import com.mocktest.exception.BadRequestException;
 import com.mocktest.service.CodeExecutionService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.mocktest.repositories.QuestionRepository;
+import com.mocktest.models.Question;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,6 +38,7 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
     private final String apiKey;     // optional – for RapidAPI hosted Judge0
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient httpClient;
+    private final QuestionRepository questionRepository;
 
     /** Judge0 language IDs: https://ce.judge0.com/languages */
     private static final Map<String, Integer> LANGUAGE_MAP = Map.of(
@@ -45,24 +49,48 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
 
     public Judge0CodeExecutionService(
             @Value("${app.judge0.api-url:https://judge0-ce.p.rapidapi.com}") String apiUrl,
-            @Value("${app.judge0.api-key:}") String apiKey) {
+            @Value("${app.judge0.api-key:}") String apiKey,
+            QuestionRepository questionRepository) {
         this.apiUrl = apiUrl;
         this.apiKey = apiKey;
+        this.questionRepository = questionRepository;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
     }
 
     @Override
-    public CodeExecutionResult execute(String sourceCode, String language, String stdin) {
+    public CodeExecutionResult execute(String sourceCode, String language, String stdin, Long questionId) {
         int langId = languageId(language);
+        String finalStdin = stdin;
+        String expectedOutput = null;
+
+        // If questionId is provided, pull the first hidden test case for validation
+        if (questionId != null) {
+            Question q = questionRepository.findById(questionId).orElse(null);
+            if (q != null && q.getTestCases() != null) {
+                try {
+                    List<Map<String, String>> testCases = mapper.readValue(
+                            q.getTestCases(), new com.fasterxml.jackson.core.type.TypeReference<>() {});
+                    if (!testCases.isEmpty()) {
+                        Map<String, String> first = testCases.get(0);
+                        if (finalStdin == null || finalStdin.isBlank()) {
+                            finalStdin = first.getOrDefault("input", "");
+                        }
+                        expectedOutput = first.getOrDefault("expected", "").trim();
+                    }
+                } catch (Exception e) {
+                    log.warn("[DEBUG] Failed to parse test cases for question {}: {}", questionId, e.getMessage());
+                }
+            }
+        }
 
         try {
             // Build the JSON body with base64-encoded fields
             String body = mapper.writeValueAsString(Map.of(
                     "source_code", b64Encode(sourceCode),
                     "language_id", langId,
-                    "stdin", b64Encode(stdin != null ? stdin : "")
+                    "stdin", b64Encode(finalStdin != null ? finalStdin : "")
             ));
 
             // Increase wait timeout for Java compilation
@@ -109,6 +137,15 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
             JsonNode timeNode = json.get("time");
             if (timeNode != null && !timeNode.isNull()) {
                 result.setExecutionTimeMs(timeNode.asDouble() * 1000); // seconds -> ms
+            }
+
+            // Comparison logic
+            if (expectedOutput != null) {
+                String actual = result.getActualOutput() != null ? result.getActualOutput().trim() : "";
+                result.setPassed(actual.equals(expectedOutput));
+                // Clear output if passed/failed is requested (to hide raw data)
+                // Note: we might want to keep actualOutput for debugging, but the user requested to show passed/failed instead.
+                // We'll leave it in the DTO but the frontend will choose what to show.
             }
 
             return result;

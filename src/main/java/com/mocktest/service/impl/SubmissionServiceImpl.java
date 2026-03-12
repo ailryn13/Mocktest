@@ -249,7 +249,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                 String input = tc.getOrDefault("input", "");
                 String expected = tc.getOrDefault("expected", "").trim();
 
-                CodeExecutionResult result = codeExecutionService.execute(code, language, input);
+                CodeExecutionResult result = codeExecutionService.execute(code, language, input, null);
 
                 String actual = result.getActualOutput() != null
                         ? result.getActualOutput().trim() : "";

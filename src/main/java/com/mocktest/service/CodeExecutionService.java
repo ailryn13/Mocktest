@@ -15,7 +15,7 @@ public interface CodeExecutionService {
      * @param stdin      input fed to the program's stdin
      * @return execution result including stdout, stderr, status
      */
-    CodeExecutionResult execute(String sourceCode, String language, String stdin);
+    CodeExecutionResult execute(String sourceCode, String language, String stdin, Long questionId);
 
     /**
      * Map a language string to the Judge0 language id.

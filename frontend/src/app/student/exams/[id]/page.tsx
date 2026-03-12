@@ -63,7 +63,7 @@ export default function TakeExamPage() {
   // Coding question state
   const [codeLangs, setCodeLangs] = useState<Record<number, string>>({});
   const [codeValues, setCodeValues] = useState<Record<number, string>>({});
-  const [runResults, setRunResults] = useState<Record<number, { output?: string; error?: string; running: boolean }>>({});
+  const [runResults, setRunResults] = useState<Record<number, { output?: string; error?: string; running: boolean; passed?: boolean }>>({});
 
   // Watermark timestamp — refreshes every 30 s so screenshots are time-stamped
   const [watermarkTime, setWatermarkTime] = useState(new Date());
@@ -256,8 +256,18 @@ export default function TakeExamPage() {
         method: "POST",
         body: JSON.stringify({ sourceCode: code, language, stdin: "", questionId }),
       });
-      const output = result.actualOutput || result.compileOutput || result.stderr || result.statusDescription || "No output";
-      setRunResults((prev) => ({ ...prev, [questionId]: { output, running: false } }));
+      
+      // If there's a compile error or stderr, we want to show that instead of a simple "FAILED"
+      const errorOutput = result.compileOutput || result.stderr;
+      
+      setRunResults((prev) => ({ 
+        ...prev, 
+        [questionId]: { 
+          output: errorOutput || result.statusDescription,
+          passed: result.passed,
+          running: false 
+        } 
+      }));
     } catch (err) {
       setRunResults((prev) => ({
         ...prev,
@@ -510,14 +520,23 @@ export default function TakeExamPage() {
                   {/* Run output */}
                   {runResults[q.id] && !runResults[q.id].running && (
                     <div className="rounded-lg bg-gray-800 border border-gray-700 p-3">
-                      <p className="text-xs text-gray-400 mb-1">Output:</p>
-                      <pre className="text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                      <p className="text-xs text-gray-400 mb-1">Execution Status:</p>
+                      <div className="text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
                         {runResults[q.id].error ? (
                           <span className="text-red-400">{runResults[q.id].error}</span>
                         ) : (
-                          <span className="text-green-300">{runResults[q.id].output}</span>
+                          <>
+                            <div className={`text-lg font-bold ${runResults[q.id].passed ? "text-green-400" : "text-red-400"}`}>
+                              {runResults[q.id].passed ? "PASSED ✅" : "FAILED ❌"}
+                            </div>
+                            {!runResults[q.id]?.passed && runResults[q.id]?.output && !runResults[q.id]?.output?.includes("Accepted") && (
+                              <pre className="mt-2 p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300">
+                                {runResults[q.id]?.output}
+                              </pre>
+                            )}
+                          </>
                         )}
-                      </pre>
+                      </div>
                     </div>
                   )}
                 </div>

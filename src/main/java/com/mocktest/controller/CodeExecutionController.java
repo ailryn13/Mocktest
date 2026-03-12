@@ -39,7 +39,8 @@ public class CodeExecutionController {
         CodeExecutionResult result = codeExecutionService.execute(
                 request.getSourceCode(),
                 request.getLanguage(),
-                request.getStdin());
+                request.getStdin(),
+                request.getQuestionId());
                 
         log.info("[DEBUG] Returning execution result with status code: {}", result.getStatusId());
         return ResponseEntity.ok(result);
