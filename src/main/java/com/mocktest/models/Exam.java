@@ -3,6 +3,8 @@ package com.mocktest.models;
 import com.mocktest.models.enums.ExamType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a scheduled examination created by a Mediator.
@@ -64,6 +66,16 @@ public class Exam {
 
     @Column(name = "memory_limit_mb")
     private Integer memoryLimitMb = 256;
+
+    // ── Reciprocal Relationships (Cascading) ──────────────────────────
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Question> questions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Submission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MalpracticeLog> malpracticeLogs = new ArrayList<>();
 
     /* ---------- Constructors ---------- */
 
@@ -162,4 +174,13 @@ public class Exam {
 
     public Integer getMemoryLimitMb() { return memoryLimitMb; }
     public void setMemoryLimitMb(Integer memoryLimitMb) { this.memoryLimitMb = memoryLimitMb; }
+
+    public List<Question> getQuestions() { return questions; }
+    public void setQuestions(List<Question> questions) { this.questions = questions; }
+
+    public List<Submission> getSubmissions() { return submissions; }
+    public void setSubmissions(List<Submission> submissions) { this.submissions = submissions; }
+
+    public List<MalpracticeLog> getMalpracticeLogs() { return malpracticeLogs; }
+    public void setMalpracticeLogs(List<MalpracticeLog> malpracticeLogs) { this.malpracticeLogs = malpracticeLogs; }
 }
