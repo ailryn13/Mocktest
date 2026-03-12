@@ -63,6 +63,12 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Exam not found: " + request.getExamId()));
 
+        // Enforce department match
+        if (student.getDepartment() == null || exam.getMediator().getDepartment() == null ||
+            !student.getDepartment().getId().equals(exam.getMediator().getDepartment().getId())) {
+            throw new BadRequestException("You can only submit exams in your own department");
+        }
+
         // Prevent duplicate submissions
         if (submissionRepository.findByUserIdAndExamId(student.getId(), exam.getId()).isPresent()) {
             throw new BadRequestException("You have already submitted this exam");

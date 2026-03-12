@@ -13,6 +13,9 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
     /** All exams created by a particular mediator. */
     List<Exam> findByMediatorId(Long mediatorId);
 
+    /** All exams created by mediators in a specific department. */
+    List<Exam> findByMediatorDepartmentId(Long departmentId);
+
     /** Exams whose window is currently active (start ≤ now ≤ end). */
     List<Exam> findByStartTimeBeforeAndEndTimeAfter(LocalDateTime now1, LocalDateTime now2);
 

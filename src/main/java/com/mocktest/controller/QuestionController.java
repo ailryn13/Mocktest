@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 /**
@@ -25,33 +26,33 @@ public class QuestionController {
 
     @PostMapping
     public ResponseEntity<QuestionResponse> create(
-            @Valid @RequestBody QuestionRequest request) {
-        return ResponseEntity.ok(questionService.create(request));
+            @Valid @RequestBody QuestionRequest request, Principal principal) {
+        return ResponseEntity.ok(questionService.create(request, principal.getName()));
     }
 
     /** Bulk-create questions from CSV/Excel or AI-paste import. */
     @PostMapping("/bulk")
     public ResponseEntity<List<QuestionResponse>> bulkCreate(
-            @RequestBody List<QuestionRequest> requests) {
-        return ResponseEntity.ok(questionService.bulkCreate(requests));
+            @RequestBody List<QuestionRequest> requests, Principal principal) {
+        return ResponseEntity.ok(questionService.bulkCreate(requests, principal.getName()));
     }
 
     /** Returns full question data including answers (mediator view). */
     @GetMapping("/exam/{examId}")
-    public ResponseEntity<List<QuestionResponse>> getByExam(@PathVariable Long examId) {
-        return ResponseEntity.ok(questionService.getByExamId(examId));
+    public ResponseEntity<List<QuestionResponse>> getByExam(@PathVariable Long examId, Principal principal) {
+        return ResponseEntity.ok(questionService.getByExamId(examId, principal.getName()));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<QuestionResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody QuestionRequest request) {
-        return ResponseEntity.ok(questionService.update(id, request));
+            @Valid @RequestBody QuestionRequest request, Principal principal) {
+        return ResponseEntity.ok(questionService.update(id, request, principal.getName()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        questionService.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id, Principal principal) {
+        questionService.delete(id, principal.getName());
         return ResponseEntity.noContent().build();
     }
 }

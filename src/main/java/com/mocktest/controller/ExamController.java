@@ -37,8 +37,8 @@ public class ExamController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ExamResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(examService.getById(id));
+    public ResponseEntity<ExamResponse> getById(@PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(examService.getById(id, auth.getName()));
     }
 
     @PutMapping("/{id}")

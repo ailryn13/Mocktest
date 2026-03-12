@@ -10,8 +10,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Mediator endpoint for enrolling (registering) students in their department.
@@ -33,16 +35,31 @@ public class MediatorStudentController {
         this.departmentService = departmentService;
     }
 
-    /** Register a new student – role is forced to STUDENT regardless of request body. */
+    /** Register a new student – role is forced to STUDENT and department is forced to mediator's department. */
     @PostMapping("/register-student")
-    public ResponseEntity<String> registerStudent(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<String> registerStudent(@Valid @RequestBody RegisterRequest request, Principal principal) {
+        com.mocktest.models.User mediator = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new com.mocktest.exception.ResourceNotFoundException("Mediator not found"));
+        
+        if (mediator.getDepartment() == null) {
+            throw new com.mocktest.exception.BadRequestException("Mediator has no department assigned");
+        }
+        
+        request.setDepartmentId(mediator.getDepartment().getId());
         return ResponseEntity.ok(authService.registerStudent(request));
     }
 
-    /** List all registered students (for mediator dashboard). */
+    /** List all registered students in the mediator's department. */
     @GetMapping("/students")
-    public ResponseEntity<List<Map<String, Object>>> listStudents() {
-        List<Map<String, Object>> students = userRepository.findByRole(Role.STUDENT)
+    public ResponseEntity<List<Map<String, Object>>> listStudents(Principal principal) {
+        com.mocktest.models.User mediator = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new com.mocktest.exception.ResourceNotFoundException("Mediator not found"));
+
+        if (mediator.getDepartment() == null) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Map<String, Object>> students = userRepository.findByRoleAndDepartmentId(Role.STUDENT, mediator.getDepartment().getId())
                 .stream()
                 .map(u -> Map.<String, Object>of(
                         "id", u.getId(),

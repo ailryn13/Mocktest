@@ -41,10 +41,18 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public QuestionResponse create(QuestionRequest request) {
+    public QuestionResponse create(QuestionRequest request, String mediatorEmail) {
         Exam exam = examRepository.findById(request.getExamId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Exam not found: " + request.getExamId()));
+
+        User mediator = userRepository.findByEmail(mediatorEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (mediator.getDepartment() == null || exam.getMediator().getDepartment() == null ||
+            !mediator.getDepartment().getId().equals(exam.getMediator().getDepartment().getId())) {
+            throw new BadRequestException("You can only add questions to exams in your own department");
+        }
 
         QuestionType type = QuestionType.valueOf(request.getType().toUpperCase());
 
@@ -64,7 +72,18 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<QuestionResponse> getByExamId(Long examId) {
+    public List<QuestionResponse> getByExamId(Long examId, String mediatorEmail) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
+        
+        User mediator = userRepository.findByEmail(mediatorEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (mediator.getDepartment() == null || exam.getMediator().getDepartment() == null ||
+            !mediator.getDepartment().getId().equals(exam.getMediator().getDepartment().getId())) {
+            throw new BadRequestException("You can only access questions in your own department");
+        }
+
         return questionRepository.findByExamId(examId)
                 .stream()
                 .map(q -> toResponse(q, false))
@@ -75,6 +94,14 @@ public class QuestionServiceImpl implements QuestionService {
     public List<QuestionResponse> getByExamIdForStudent(Long examId, String studentEmail) {
         User student = userRepository.findByEmail(studentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
+
+        if (student.getDepartment() == null || exam.getMediator().getDepartment() == null ||
+            !student.getDepartment().getId().equals(exam.getMediator().getDepartment().getId())) {
+            throw new BadRequestException("You can only access exams in your own department");
+        }
 
         if (submissionRepository.findByUserIdAndExamId(student.getId(), examId).isPresent()) {
             throw new BadRequestException("Exam already submitted or terminated due to violation.");
@@ -87,9 +114,18 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public QuestionResponse update(Long id, QuestionRequest request) {
+    public QuestionResponse update(Long id, QuestionRequest request, String mediatorEmail) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found: " + id));
+
+        Exam exam = question.getExam();
+        User mediator = userRepository.findByEmail(mediatorEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (mediator.getDepartment() == null || exam.getMediator().getDepartment() == null ||
+            !mediator.getDepartment().getId().equals(exam.getMediator().getDepartment().getId())) {
+            throw new BadRequestException("You can only update questions in your own department");
+        }
 
         question.setType(QuestionType.valueOf(request.getType().toUpperCase()));
         question.setContent(request.getContent());
@@ -107,18 +143,27 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional
-    public List<QuestionResponse> bulkCreate(List<QuestionRequest> requests) {
+    public java.util.List<QuestionResponse> bulkCreate(java.util.List<QuestionRequest> requests, String mediatorEmail) {
         return requests.stream()
-                .map(this::create)
+                .map(r -> this.create(r, mediatorEmail))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void delete(Long id) {
-        if (!questionRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Question not found: " + id);
+    public void delete(Long id, String mediatorEmail) {
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found: " + id));
+        
+        Exam exam = question.getExam();
+        User mediator = userRepository.findByEmail(mediatorEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (mediator.getDepartment() == null || exam.getMediator().getDepartment() == null ||
+            !mediator.getDepartment().getId().equals(exam.getMediator().getDepartment().getId())) {
+            throw new BadRequestException("You can only delete questions in your own department");
         }
-        questionRepository.deleteById(id);
+
+        questionRepository.delete(question);
     }
 
     /* ---- mapper ---- */

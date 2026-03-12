@@ -22,4 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /** Fetch all users belonging to a specific department. */
     List<User> findByDepartmentId(Long departmentId);
+
+    /** Fetch all users with a specific role and department. */
+    List<User> findByRoleAndDepartmentId(Role role, Long departmentId);
 }

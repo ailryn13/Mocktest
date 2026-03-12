@@ -54,7 +54,12 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public List<ExamResponse> getByMediator(String mediatorEmail) {
         User mediator = findUserByEmail(mediatorEmail);
-        return examRepository.findByMediatorId(mediator.getId())
+        if (mediator.getDepartment() == null) {
+            log.warn("Mediator {} has no department assigned", mediatorEmail);
+            return List.of();
+        }
+        // Return all exams in the same department
+        return examRepository.findByMediatorDepartmentId(mediator.getDepartment().getId())
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -95,9 +100,19 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public ExamResponse getById(Long id) {
+    public ExamResponse getById(Long id, String userEmail) {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found: " + id));
+        
+        User requester = findUserByEmail(userEmail);
+        User owner = exam.getMediator();
+
+        // Enforce department match
+        if (requester.getDepartment() == null || owner.getDepartment() == null ||
+            !requester.getDepartment().getId().equals(owner.getDepartment().getId())) {
+            throw new BadRequestException("You can only access exams in your own department");
+        }
+
         return toResponse(exam);
     }
 
@@ -106,7 +121,18 @@ public class ExamServiceImpl implements ExamService {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found: " + id));
 
-        if (!exam.getMediator().getEmail().equals(mediatorEmail)) {
+        User requester = findUserByEmail(mediatorEmail);
+        User owner = exam.getMediator();
+
+        // Enforce department match
+        if (requester.getDepartment() == null || owner.getDepartment() == null ||
+            !requester.getDepartment().getId().equals(owner.getDepartment().getId())) {
+            throw new BadRequestException("You can only access exams in your own department");
+        }
+
+        // Keep ownership check if we want it strict, otherwise department-level access is granted above.
+        // For now, I'll stick to ownership check but with department isolation as well.
+        if (!owner.getEmail().equals(mediatorEmail)) {
             throw new BadRequestException("You can only update your own exams");
         }
 
@@ -125,7 +151,16 @@ public class ExamServiceImpl implements ExamService {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found: " + id));
 
-        if (!exam.getMediator().getEmail().equals(mediatorEmail)) {
+        User requester = findUserByEmail(mediatorEmail);
+        User owner = exam.getMediator();
+
+        // Enforce department match
+        if (requester.getDepartment() == null || owner.getDepartment() == null ||
+            !requester.getDepartment().getId().equals(owner.getDepartment().getId())) {
+            throw new BadRequestException("You can only access exams in your own department");
+        }
+
+        if (!owner.getEmail().equals(mediatorEmail)) {
             throw new BadRequestException("You can only delete your own exams");
         }
         examRepository.delete(exam);

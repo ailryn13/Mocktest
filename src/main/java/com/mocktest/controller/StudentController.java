@@ -55,8 +55,8 @@ public class StudentController {
     }
 
     @GetMapping("/exams/{examId}")
-    public ResponseEntity<ExamResponse> getExam(@PathVariable Long examId) {
-        return ResponseEntity.ok(examService.getById(examId));
+    public ResponseEntity<ExamResponse> getExam(@PathVariable Long examId, Authentication auth) {
+        return ResponseEntity.ok(examService.getById(examId, auth.getName()));
     }
 
     /* ---- Exam Questions (answers hidden) ---- */
