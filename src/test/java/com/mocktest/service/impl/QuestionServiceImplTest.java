@@ -11,6 +11,8 @@ import com.mocktest.models.enums.QuestionType;
 import com.mocktest.models.enums.Role;
 import com.mocktest.repositories.ExamRepository;
 import com.mocktest.repositories.QuestionRepository;
+import com.mocktest.repositories.SubmissionRepository;
+import com.mocktest.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +39,12 @@ class QuestionServiceImplTest {
     @Mock
     private ExamRepository examRepository;
 
+    @Mock
+    private SubmissionRepository submissionRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private QuestionServiceImpl questionService;
 
@@ -58,6 +66,12 @@ class QuestionServiceImplTest {
         testQuestion = new Question(testExam, QuestionType.MCQ,
                 "What is Java?", "A,B,C,D", "A", null);
         testQuestion.setId(1L);
+    }
+
+    private User createStudent() {
+        User student = new User("Student", "student@test.com", "hash", Role.STUDENT, null);
+        student.setId(2L);
+        return student;
     }
 
     @Test
@@ -114,10 +128,13 @@ class QuestionServiceImplTest {
     @Test
     void getByExamIdForStudent_hidesAnswers() {
         // Arrange
+        User student = createStudent();
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(student));
+        when(submissionRepository.findByUserIdAndExamId(2L, 1L)).thenReturn(Optional.empty());
         when(questionRepository.findByExamId(1L)).thenReturn(Arrays.asList(testQuestion));
 
         // Act
-        List<QuestionResponse> result = questionService.getByExamIdForStudent(1L);
+        List<QuestionResponse> result = questionService.getByExamIdForStudent(1L, "student@test.com");
 
         // Assert
         assertEquals(1, result.size());

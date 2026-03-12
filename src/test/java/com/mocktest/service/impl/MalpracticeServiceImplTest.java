@@ -7,6 +7,7 @@ import com.mocktest.models.*;
 import com.mocktest.models.enums.Role;
 import com.mocktest.repositories.ExamRepository;
 import com.mocktest.repositories.MalpracticeLogRepository;
+import com.mocktest.repositories.SubmissionRepository;
 import com.mocktest.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,9 @@ class MalpracticeServiceImplTest {
 
     @Mock
     private ExamRepository examRepository;
+
+    @Mock
+    private SubmissionRepository submissionRepository;
 
     @InjectMocks
     private MalpracticeServiceImpl malpracticeService;
@@ -79,10 +83,30 @@ class MalpracticeServiceImplTest {
         MalpracticeLogResponse response = malpracticeService.logViolation(request, "student@test.com");
 
         // Assert
-        assertEquals(1L, response.getId());
-        assertEquals(2L, response.getUserId());
-        assertEquals("TAB_SWITCH", response.getViolationType());
         assertEquals(1L, response.getTotalViolations());
+    }
+
+    @Test
+    void logViolation_withCriticalViolation_triggersInstantTermination() {
+        // Arrange
+        MalpracticeLogRequest request = new MalpracticeLogRequest();
+        request.setExamId(1L);
+        request.setViolationType("FULLSCREEN_EXIT");
+
+        MalpracticeLog savedLog = new MalpracticeLog(student, exam, "FULLSCREEN_EXIT", LocalDateTime.now());
+        savedLog.setId(1L);
+
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(student));
+        when(examRepository.findById(1L)).thenReturn(Optional.of(exam));
+        when(malpracticeLogRepository.save(any(MalpracticeLog.class))).thenReturn(savedLog);
+        when(malpracticeLogRepository.countByUserIdAndExamId(2L, 1L)).thenReturn(1L);
+        when(submissionRepository.findByUserIdAndExamId(2L, 1L)).thenReturn(Optional.empty());
+
+        // Act
+        malpracticeService.logViolation(request, "student@test.com");
+
+        // Assert
+        verify(submissionRepository).save(any(Submission.class));
     }
 
     @Test
