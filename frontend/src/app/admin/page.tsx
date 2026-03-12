@@ -10,6 +10,14 @@ interface Department {
   name: string;
 }
 
+interface Mediator {
+  id: number;
+  name: string;
+  email: string;
+  departmentName: string;
+  departmentId: number;
+}
+
 export default function AdminDashboard() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
@@ -23,11 +31,14 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Mediator registration form state
+  // Mediator registration / edit form state
+  const [mediators, setMediators] = useState<Mediator[]>([]);
+  const [fetchingMediators, setFetchingMediators] = useState(true);
   const [medName, setMedName] = useState("");
   const [medEmail, setMedEmail] = useState("");
   const [medPassword, setMedPassword] = useState("");
   const [medDeptId, setMedDeptId] = useState<number | "">("");
+  const [editingMediatorId, setEditingMediatorId] = useState<number | null>(null);
   const [registeringSaving, setRegisteringSaving] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState("");
 
@@ -40,12 +51,25 @@ export default function AdminDashboard() {
     }
   }, [user, loading, router]);
 
-  // Fetch departments
+  // Fetch initial data
   useEffect(() => {
     if (user && user.role === "ADMIN") {
       loadDepartments();
+      loadMediators();
     }
   }, [user]);
+
+  async function loadMediators() {
+    setFetchingMediators(true);
+    try {
+      const data = await apiFetch<Mediator[]>("/admin/mediators");
+      setMediators(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load mediators");
+    } finally {
+      setFetchingMediators(false);
+    }
+  }
 
   async function loadDepartments() {
     setFetching(true);
@@ -121,26 +145,77 @@ export default function AdminDashboard() {
     setRegisterSuccess("");
     setRegisteringSaving(true);
     try {
-      const msg = await apiFetch<string>("/admin/register-mediator", {
-        method: "POST",
-        body: JSON.stringify({
-          name: medName,
-          email: medEmail,
-          password: medPassword,
-          role: "MEDIATOR",
-          departmentId: medDeptId,
-        }),
-      });
-      setRegisterSuccess(typeof msg === "string" ? msg : "Mediator registered successfully");
-      setMedName("");
-      setMedEmail("");
-      setMedPassword("");
-      setMedDeptId("");
+      if (editingMediatorId !== null) {
+        // Update
+        const updated = await apiFetch<Mediator>(`/admin/mediators/${editingMediatorId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name: medName,
+            email: medEmail,
+            password: medPassword || undefined, // Send only if changed
+            role: "MEDIATOR",
+            departmentId: medDeptId,
+          }),
+        });
+        setMediators((prev) =>
+          prev.map((m) => (m.id === editingMediatorId ? updated : m))
+        );
+        setRegisterSuccess("Mediator updated successfully");
+        cancelEditMediator();
+      } else {
+        // Create
+        await apiFetch<string>("/admin/register-mediator", {
+          method: "POST",
+          body: JSON.stringify({
+            name: medName,
+            email: medEmail,
+            password: medPassword,
+            role: "MEDIATOR",
+            departmentId: medDeptId,
+          }),
+        });
+        setRegisterSuccess("Mediator registered successfully");
+        loadMediators(); // Refresh list
+        setMedName("");
+        setMedEmail("");
+        setMedPassword("");
+        setMedDeptId("");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      setError(err instanceof Error ? err.message : "Operation failed");
     } finally {
       setRegisteringSaving(false);
     }
+  }
+
+  async function handleDeleteMediator(id: number) {
+    if (!confirm("Delete this mediator account? All their exams will remain but they won't be able to log in.")) return;
+    setError("");
+    try {
+      await apiFetch(`/admin/mediators/${id}`, { method: "DELETE" });
+      setMediators((prev) => prev.filter((m) => m.id !== id));
+      if (editingMediatorId === id) cancelEditMediator();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    }
+  }
+
+  function startEditMediator(m: Mediator) {
+    setEditingMediatorId(m.id);
+    setMedName(m.name);
+    setMedEmail(m.email);
+    setMedPassword(""); // Don't show hashed password
+    setMedDeptId(m.departmentId);
+    setRegisterSuccess("");
+    setError("");
+  }
+
+  function cancelEditMediator() {
+    setEditingMediatorId(null);
+    setMedName("");
+    setMedEmail("");
+    setMedPassword("");
+    setMedDeptId("");
   }
 
   if (loading) return null;
@@ -251,9 +326,19 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Register Mediator */}
+        {/* Register / Edit Mediator */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
-          <h2 className="text-lg font-semibold mb-4">Register Mediator</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{editingMediatorId ? "Edit Mediator" : "Register Mediator"}</h2>
+            {editingMediatorId && (
+              <button
+                onClick={cancelEditMediator}
+                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
           <form onSubmit={handleRegisterMediator} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
               type="text"
@@ -273,10 +358,10 @@ export default function AdminDashboard() {
             />
             <input
               type="password"
-              required
+              required={!editingMediatorId}
               value={medPassword}
               onChange={(e) => setMedPassword(e.target.value)}
-              placeholder="Password"
+              placeholder={editingMediatorId ? "New Password (optional)" : "Password"}
               className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <select
@@ -294,12 +379,62 @@ export default function AdminDashboard() {
               <button
                 type="submit"
                 disabled={registeringSaving}
-                className="px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/50 font-medium text-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
+                className={`px-6 py-2 rounded-lg ${editingMediatorId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'} disabled:opacity-50 font-medium text-sm transition-colors cursor-pointer disabled:cursor-not-allowed`}
               >
-                {registeringSaving ? "Registering..." : "Register Mediator"}
+                {registeringSaving ? "Saving..." : editingMediatorId ? "Update Mediator" : "Register Mediator"}
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Mediators List */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
+          <h2 className="text-lg font-semibold mb-4">Mediators</h2>
+          {fetchingMediators ? (
+            <p className="text-gray-500 text-sm">Loading mediators...</p>
+          ) : mediators.length === 0 ? (
+            <p className="text-gray-500 text-sm">No mediators registered.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="pb-2 text-gray-400 text-sm font-medium">Name</th>
+                    <th className="pb-2 text-gray-400 text-sm font-medium">Email</th>
+                    <th className="pb-2 text-gray-400 text-sm font-medium">Department</th>
+                    <th className="pb-2 text-gray-400 text-sm font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mediators.map((m) => (
+                    <tr key={m.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+                      <td className="py-3 text-gray-200">{m.name}</td>
+                      <td className="py-3 text-gray-400 text-sm">{m.email}</td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-900/40 text-blue-300 border border-blue-800/50">
+                          {m.departmentName}
+                        </span>
+                      </td>
+                      <td className="py-3 text-right space-x-2">
+                        <button
+                          onClick={() => startEditMediator(m)}
+                          className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs font-medium transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMediator(m.id)}
+                          className="px-3 py-1 rounded bg-red-900/40 hover:bg-red-900/60 text-red-400 text-xs font-medium transition-colors cursor-pointer border border-red-800/50"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

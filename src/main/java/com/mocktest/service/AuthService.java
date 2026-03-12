@@ -15,4 +15,9 @@ public interface AuthService {
 
     /** Mediator-only: register a student (forces STUDENT role). */
     String registerStudent(RegisterRequest request);
+
+    // --- Admin-only Mediator Management ---
+    java.util.List<com.mocktest.dto.auth.UserResponse> getAllMediators();
+    com.mocktest.dto.auth.UserResponse updateMediator(Long id, RegisterRequest request);
+    void deleteMediator(Long id);
 }

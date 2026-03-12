@@ -1,6 +1,7 @@
 package com.mocktest.controller;
 
 import com.mocktest.dto.auth.RegisterRequest;
+import com.mocktest.dto.auth.UserResponse;
 import com.mocktest.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -25,5 +26,21 @@ public class AdminController {
     @PostMapping("/register-mediator")
     public ResponseEntity<String> registerMediator(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.registerMediator(request));
+    }
+
+    @GetMapping("/mediators")
+    public ResponseEntity<java.util.List<UserResponse>> getAllMediators() {
+        return ResponseEntity.ok(authService.getAllMediators());
+    }
+
+    @PutMapping("/mediators/{id}")
+    public ResponseEntity<UserResponse> updateMediator(@PathVariable Long id, @Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.updateMediator(id, request));
+    }
+
+    @DeleteMapping("/mediators/{id}")
+    public ResponseEntity<Void> deleteMediator(@PathVariable Long id) {
+        authService.deleteMediator(id);
+        return ResponseEntity.noContent().build();
     }
 }

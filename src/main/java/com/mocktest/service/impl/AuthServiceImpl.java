@@ -3,6 +3,7 @@ package com.mocktest.service.impl;
 import com.mocktest.dto.auth.LoginRequest;
 import com.mocktest.dto.auth.LoginResponse;
 import com.mocktest.dto.auth.RegisterRequest;
+import com.mocktest.dto.auth.UserResponse;
 import com.mocktest.exception.BadRequestException;
 import com.mocktest.exception.ResourceNotFoundException;
 import com.mocktest.models.Department;
@@ -16,6 +17,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @SuppressWarnings("null")
@@ -94,5 +99,63 @@ public class AuthServiceImpl implements AuthService {
     public String registerStudent(RegisterRequest request) {
         request.setRole("STUDENT");
         return register(request);
+    }
+
+    @Override
+    public List<UserResponse> getAllMediators() {
+        return userRepository.findByRole(Role.MEDIATOR)
+                .stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateMediator(Long id, RegisterRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mediator not found with id: " + id));
+
+        if (user.getRole() != Role.MEDIATOR) {
+            throw new BadRequestException("User is not a mediator");
+        }
+
+        // Check if updating to an already taken email (by someone else)
+        if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email already taken");
+        }
+
+        Department department = departmentRepository.findById(request.getDepartmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
+
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setDepartment(department);
+
+        // Update password only if provided
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
+
+        user = userRepository.save(user);
+        return mapToUserResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMediator(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mediator not found with id: " + id));
+
+        if (user.getRole() != Role.MEDIATOR) {
+            throw new BadRequestException("Only mediator accounts can be deleted through this endpoint");
+        }
+
+        userRepository.delete(user);
+    }
+
+    private UserResponse mapToUserResponse(User user) {
+        String deptName = user.getDepartment() != null ? user.getDepartment().getName() : "No Department";
+        Long deptId = user.getDepartment() != null ? user.getDepartment().getId() : null;
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), deptName, deptId);
     }
 }
