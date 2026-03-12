@@ -5,9 +5,11 @@ import com.mocktest.dto.malpractice.MalpracticeLogResponse;
 import com.mocktest.exception.ResourceNotFoundException;
 import com.mocktest.models.Exam;
 import com.mocktest.models.MalpracticeLog;
+import com.mocktest.models.Submission;
 import com.mocktest.models.User;
 import com.mocktest.repositories.ExamRepository;
 import com.mocktest.repositories.MalpracticeLogRepository;
+import com.mocktest.repositories.SubmissionRepository;
 import com.mocktest.repositories.UserRepository;
 import com.mocktest.service.MalpracticeService;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,16 +29,19 @@ public class MalpracticeServiceImpl implements MalpracticeService {
     private final MalpracticeLogRepository malpracticeLogRepository;
     private final UserRepository userRepository;
     private final ExamRepository examRepository;
+    private final SubmissionRepository submissionRepository;
 
     @Value("${app.malpractice.max-violations}")
     private int maxViolations;
 
     public MalpracticeServiceImpl(MalpracticeLogRepository malpracticeLogRepository,
                                   UserRepository userRepository,
-                                  ExamRepository examRepository) {
+                                  ExamRepository examRepository,
+                                  SubmissionRepository submissionRepository) {
         this.malpracticeLogRepository = malpracticeLogRepository;
         this.userRepository = userRepository;
         this.examRepository = examRepository;
+        this.submissionRepository = submissionRepository;
     }
 
     @Override
@@ -55,9 +60,19 @@ public class MalpracticeServiceImpl implements MalpracticeService {
         long totalViolations = malpracticeLogRepository
                 .countByUserIdAndExamId(student.getId(), exam.getId());
 
-        // NOTE: When totalViolations >= maxViolations the frontend should
-        // auto-submit the exam. Alternatively, the controller can trigger
-        // SubmissionService.submit() here via an event or direct call.
+        // CRITICAL: If violation type is FULLSCREEN_EXIT or count exceeds threshold,
+        // instantly terminate the test by creating a "Locked" submission record.
+        boolean deservesTermination = "FULLSCREEN_EXIT".equalsIgnoreCase(request.getViolationType())
+                || totalViolations >= maxViolations;
+
+        if (deservesTermination && submissionRepository.findByUserIdAndExamId(student.getId(), exam.getId()).isEmpty()) {
+            Submission lockSubmission = new Submission();
+            lockSubmission.setUser(student);
+            lockSubmission.setExam(exam);
+            lockSubmission.setScore(0.0); // Or whatever penalty policy
+            lockSubmission.setSubmittedAt(LocalDateTime.now());
+            submissionRepository.save(lockSubmission);
+        }
 
         return toResponse(log, totalViolations);
     }
