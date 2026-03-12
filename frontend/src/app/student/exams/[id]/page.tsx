@@ -173,7 +173,11 @@ export default function TakeExamPage() {
     };
     const handleBlur = () => reportViolation("WINDOW_BLUR");
     const handleFullscreen = () => {
-      if (!document.fullscreenElement) reportViolation("FULLSCREEN_EXIT");
+      if (!document.fullscreenElement && !submittedRef.current) {
+        submittedRef.current = true;
+        setError("Proctoring Violation: Fullscreen exit detected. Your exam has been automatically terminated.");
+        handleSubmit();
+      }
     };
 
     document.addEventListener("visibilitychange", handleVisibility);

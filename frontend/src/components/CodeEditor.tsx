@@ -39,6 +39,22 @@ export default function CodeEditor({
           domReadOnly: readOnly,
           tabSize: 4,
           wordWrap: "on",
+          contextmenu: false, // Disable right-click menu
+        }}
+        onMount={(editor, monaco) => {
+          // Disable default Monaco copy/paste actions via keyboard shortcuts
+          editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
+            console.log("Copy is disabled");
+            return null;
+          });
+          editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
+            console.log("Paste is disabled");
+            return null;
+          });
+          editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
+            console.log("Cut is disabled");
+            return null;
+          });
         }}
       />
     </div>
