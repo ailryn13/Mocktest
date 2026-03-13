@@ -45,7 +45,10 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
             "java",   62,  // Java (OpenJDK 13)
             "python", 71,  // Python 3
             "cpp",    54,  // C++ (GCC 9)
-            "c",      50   // C (GCC 9)
+            "c",          50,  // C (GCC 9)
+            "javascript", 63,  // Node.js (12.14.1)
+            "sql",        82,  // SQLite (3.31.1)
+            "embedded c", 50   // Embedded C (mapped to standard C)
     );
 
     public Judge0CodeExecutionService(
@@ -203,7 +206,7 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
         Integer id = LANGUAGE_MAP.get(lang);
         if (id == null) {
             throw new BadRequestException(
-                    "Unsupported language: " + language + ". Supported: java, python, cpp");
+                    "Unsupported language: " + language + ". Supported: java, python, cpp, c, javascript, sql, embedded c");
         }
         return id;
     }

@@ -287,6 +287,8 @@ public class SubmissionServiceImpl implements SubmissionService {
             case "c++"        -> "cpp";
             case "c"          -> "c";
             case "javascript" -> "javascript";
+            case "sql"        -> "sql";
+            case "embedded c" -> "embedded c";
             default           -> lang.trim().toLowerCase();
         };
     }
