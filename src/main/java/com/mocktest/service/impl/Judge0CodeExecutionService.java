@@ -139,19 +139,21 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                 result.setExecutionTimeMs(timeNode.asDouble() * 1000); // seconds -> ms
             }
 
+            // Normalize actual output
+            String actual = result.getActualOutput() != null ? result.getActualOutput().replace("\r\n", "\n").trim() : "";
+            result.setActualOutput(actual);
+
             // Comparison logic
             if (expectedOutput != null) {
                 boolean isAccepted = result.getStatusId() == 3;
                 
                 // Normalize newlines and trim for robust comparison
-                String actual = result.getActualOutput() != null ? result.getActualOutput().replace("\r\n", "\n").trim() : "";
                 String normalizedExpected = expectedOutput.replace("\r\n", "\n").trim();
                 
                 boolean matches = actual.equals(normalizedExpected);
                 result.setPassed(isAccepted && matches);
                 
                 // Ensure DTO has clean values for the frontend
-                result.setActualOutput(actual);
                 result.setExpectedOutput(normalizedExpected);
                 result.setTestInput(finalStdin);
                 
@@ -161,8 +163,12 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                     log.info("[DEBUG] Expected output: [{}]", normalizedExpected);
                 }
             } else {
-                // Ensure non-null actual output even if no test cases
-                if (result.getActualOutput() == null) result.setActualOutput("");
+                // If no test cases defined, just check if the code ran successfully (Accepted = 3)
+                boolean isAccepted = result.getStatusId() == 3;
+                result.setPassed(isAccepted);
+                result.setActualOutput(actual);
+                result.setTestInput(finalStdin != null ? finalStdin : "");
+                log.info("[DEBUG] No test cases. Passed: {} (Accepted: {})", result.isPassed(), isAccepted);
             }
 
             return result;
