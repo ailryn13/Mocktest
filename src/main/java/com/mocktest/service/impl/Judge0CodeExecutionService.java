@@ -141,11 +141,9 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
 
             // Comparison logic
             if (expectedOutput != null) {
+                boolean isAccepted = result.getStatusId() == 3;
                 String actual = result.getActualOutput() != null ? result.getActualOutput().trim() : "";
-                result.setPassed(actual.equals(expectedOutput));
-                // Clear output if passed/failed is requested (to hide raw data)
-                // Note: we might want to keep actualOutput for debugging, but the user requested to show passed/failed instead.
-                // We'll leave it in the DTO but the frontend will choose what to show.
+                result.setPassed(isAccepted && actual.equals(expectedOutput));
             }
 
             return result;
