@@ -150,8 +150,8 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                 // Normalize newlines and trim for robust comparison
                 String normalizedExpected = expectedOutput.replace("\r\n", "\n").trim();
                 
-                // If expected output is empty/blank in the database, assume we only care about successful execution
-                boolean matches = normalizedExpected.isEmpty() || actual.equalsIgnoreCase(normalizedExpected);
+                // Strict comparison (case-sensitive) as requested
+                boolean matches = normalizedExpected.isEmpty() || actual.equals(normalizedExpected);
                 result.setPassed(isAccepted && matches);
 
                 // Provide clear mismatch reason only if we had an expectation
