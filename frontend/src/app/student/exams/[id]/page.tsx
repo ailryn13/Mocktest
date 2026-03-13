@@ -571,13 +571,13 @@ export default function TakeExamPage() {
                             </div>
                           )}
 
-                          {runResults[q.id] && (!runResults[q.id].passed || (runResults[q.id].actual && runResults[q.id].actual.trim().length > 0)) && (
+                          {runResults[q.id] && (!runResults[q.id]?.passed || (runResults[q.id]?.actual && runResults[q.id]?.actual?.trim().length > 0)) && (
                             <div className="space-y-1">
                               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Your Output:</p>
                               <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto min-h-[2.5rem] whitespace-pre-wrap ${
-                                runResults[q.id].passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
+                                runResults[q.id]?.passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
                               }`}>
-                                {runResults[q.id].actual || "(No Output)"}
+                                {runResults[q.id]?.actual || "(No Output)"}
                               </pre>
                             </div>
                           )}
