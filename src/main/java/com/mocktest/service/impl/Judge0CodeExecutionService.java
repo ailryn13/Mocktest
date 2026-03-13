@@ -150,11 +150,18 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                 boolean matches = actual.equals(normalizedExpected);
                 result.setPassed(isAccepted && matches);
                 
+                // Ensure DTO has clean values for the frontend
+                result.setActualOutput(actual);
+                result.setExpectedOutput(normalizedExpected);
+                
                 log.info("[DEBUG] Comparison - Passed: {}, Accepted: {}, Matches: {}", result.isPassed(), isAccepted, matches);
                 if (!matches) {
                     log.info("[DEBUG] Actual output: [{}]", actual);
                     log.info("[DEBUG] Expected output: [{}]", normalizedExpected);
                 }
+            } else {
+                // Ensure non-null actual output even if no test cases
+                if (result.getActualOutput() == null) result.setActualOutput("");
             }
 
             return result;

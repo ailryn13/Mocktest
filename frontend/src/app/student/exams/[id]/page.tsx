@@ -63,7 +63,15 @@ export default function TakeExamPage() {
   // Coding question state
   const [codeLangs, setCodeLangs] = useState<Record<number, string>>({});
   const [codeValues, setCodeValues] = useState<Record<number, string>>({});
-  const [runResults, setRunResults] = useState<Record<number, { output?: string; error?: string; running: boolean; passed?: boolean }>>({});
+  const [runResults, setRunResults] = useState<Record<number, { 
+    output?: string; 
+    actual?: string; 
+    expected?: string; 
+    error?: string; 
+    running: boolean; 
+    passed?: boolean;
+    status?: string;
+  }>>({});
 
   // Watermark timestamp — refreshes every 30 s so screenshots are time-stamped
   const [watermarkTime, setWatermarkTime] = useState(new Date());
@@ -249,6 +257,7 @@ export default function TakeExamPage() {
       const result = await apiFetch<{
         passed: boolean;
         actualOutput: string;
+        expectedOutput: string;
         stderr: string;
         compileOutput: string;
         statusDescription: string;
@@ -257,13 +266,13 @@ export default function TakeExamPage() {
         body: JSON.stringify({ sourceCode: code, language, stdin: "", questionId }),
       });
       
-      // Prioritize identifying the most useful output for the user
-      const outputToShow = result.compileOutput || result.stderr || result.actualOutput || result.statusDescription;
-      
       setRunResults((prev) => ({ 
         ...prev, 
         [questionId]: { 
-          output: outputToShow,
+          actual: result.actualOutput,
+          expected: result.expectedOutput,
+          error: result.compileOutput || result.stderr,
+          status: result.statusDescription,
           passed: result.passed,
           running: false 
         } 
@@ -537,27 +546,48 @@ export default function TakeExamPage() {
                         </div>
                       )}
 
-                      <div className="rounded-lg bg-gray-800 border border-gray-700 p-3">
-                        <p className="text-xs text-gray-400 mb-1">Execution Status:</p>
-                        <div className="text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
-                          {runResults[q.id].error ? (
-                            <span className="text-red-400">{runResults[q.id].error}</span>
-                          ) : (
-                            <>
-                              <div className={`text-lg font-bold ${runResults[q.id].passed ? "text-green-400" : "text-red-400"}`}>
-                                {runResults[q.id].passed ? "PASSED ✅" : "FAILED ❌"}
-                              </div>
-                              {!runResults[q.id]?.passed && runResults[q.id]?.output && (
-                                <div className="mt-2">
-                                  <p className="text-[10px] text-gray-500 uppercase mb-1 font-bold">Actual Output:</p>
-                                  <pre className="p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300">
-                                    {runResults[q.id]?.output}
-                                  </pre>
-                                </div>
-                              )}
-                            </>
-                          )}
+                      <div className="rounded-lg bg-gray-800 border border-gray-700 p-4 space-y-4">
+                        <div className="flex items-center justify-between border-b border-gray-700 pb-2">
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Execution Status:</p>
+                          <div className={`text-sm font-bold flex items-center gap-2 ${runResults[q.id].passed ? "text-green-400" : "text-red-400"}`}>
+                            {runResults[q.id].passed ? "PASSED ✅" : "FAILED ❌"}
+                            <span className="text-gray-500 text-[10px] font-normal px-2 py-0.5 rounded bg-gray-900 border border-gray-700">
+                              {runResults[q.id].status}
+                            </span>
+                          </div>
                         </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Expected Output */}
+                          {runResults[q.id].expected && (
+                            <div className="space-y-1">
+                              <p className="text-[10px] text-gray-500 uppercase font-bold">Expected Output:</p>
+                              <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto">
+                                {runResults[q.id].expected}
+                              </pre>
+                            </div>
+                          )}
+
+                          {/* Actual Output */}
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-gray-500 uppercase font-bold">Actual Output:</p>
+                            <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto ${
+                              runResults[q.id].passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
+                            }`}>
+                              {runResults[q.id].actual || (runResults[q.id].error ? "---" : "(No Output)")}
+                            </pre>
+                          </div>
+                        </div>
+
+                        {/* Error output (Compile/Runtime) */}
+                        {runResults[q.id].error && (
+                          <div className="space-y-1 border-t border-gray-700 pt-3">
+                            <p className="text-[10px] text-red-400 uppercase font-bold">Error/Diagnostics:</p>
+                            <pre className="p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300 font-mono whitespace-pre-wrap">
+                              {runResults[q.id].error}
+                            </pre>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
