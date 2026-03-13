@@ -23,6 +23,7 @@ interface Question {
   options: string | null;
   correctAnswer: string | null;
   testCases: string | null;
+  language: string | null;
 }
 
 interface ExamInfo {
@@ -115,16 +116,23 @@ export default function TakeExamPage() {
       setExam(examData);
       setQuestions(questionsData);
       setTimeLeft(examData.durationMinutes * 60);
-      // Initialise per-question language default to first allowed language
-      const allowed = examData.allowedLanguages ?? [];
-      if (allowed.length > 0) {
-        const firstLangKey = LANG_MAP[allowed[0]] ?? allowed[0].toLowerCase();
-        const defaults: Record<number, string> = {};
-        questionsData.forEach((q) => {
-          if (q.type === "CODING") defaults[q.id] = firstLangKey;
-        });
-        setCodeLangs(defaults);
-      }
+      const examAllowed = examData.allowedLanguages ?? [];
+      const defaults: Record<number, string> = {};
+      
+      questionsData.forEach((q) => {
+        if (q.type === "CODING") {
+          // Priority: Question-specific languages -> Exam-wide allowed languages -> Defaults
+          const qAllowed = q.language ? q.language.split(",").map((s: string) => s.trim()).filter(Boolean) : examAllowed;
+          
+          if (qAllowed.length > 0) {
+            const firstLangKey = LANG_MAP[qAllowed[0]] ?? qAllowed[0].toLowerCase();
+            defaults[q.id] = firstLangKey;
+          } else {
+            defaults[q.id] = "java";
+          }
+        }
+      });
+      setCodeLangs(defaults);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load exam");
     } finally {
@@ -487,9 +495,12 @@ export default function TakeExamPage() {
                   <div className="flex items-center gap-3">
                     <label className="text-sm text-gray-400">Language:</label>
                     {(() => {
-                      const allowed = exam?.allowedLanguages ?? [];
-                      const langOptions = allowed.length > 0
-                        ? allowed.map((l) => ({ label: l, value: LANG_MAP[l] ?? l.toLowerCase() }))
+                      // Priority: Question-specific languages -> Exam-wide allowed languages -> Defaults
+                      const examAllowed = exam?.allowedLanguages ?? [];
+                      const qAllowed = q.language ? q.language.split(",").map((s: string) => s.trim()).filter(Boolean) : examAllowed;
+
+                      const langOptions = qAllowed.length > 0
+                        ? qAllowed.map((l: string) => ({ label: l, value: LANG_MAP[l] ?? l.toLowerCase() }))
                         : [
                             { label: "Java",   value: "java"   },
                             { label: "Python", value: "python" },
@@ -501,7 +512,7 @@ export default function TakeExamPage() {
                           onChange={(e) => setCodeLang(q.id, e.target.value)}
                           className="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          {langOptions.map((o) => (
+                          {langOptions.map((o: { label: string; value: string }) => (
                             <option key={o.value} value={o.value}>{o.label}</option>
                           ))}
                         </select>
@@ -526,7 +537,7 @@ export default function TakeExamPage() {
 
                   {/* Monaco Editor */}
                   <CodeEditor
-                    language={codeLangs[q.id] || (exam?.allowedLanguages?.length ? (LANG_MAP[exam.allowedLanguages[0]] ?? exam.allowedLanguages[0].toLowerCase()) : "java")}
+                    language={codeLangs[q.id] || "java"}
                     value={codeValues[q.id] || ""}
                     onChange={(val) => setCodeValue(q.id, val)}
                   />
