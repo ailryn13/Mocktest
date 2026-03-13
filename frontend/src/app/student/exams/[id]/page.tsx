@@ -257,13 +257,13 @@ export default function TakeExamPage() {
         body: JSON.stringify({ sourceCode: code, language, stdin: "", questionId }),
       });
       
-      // If there's a compile error or stderr, we want to show that instead of a simple "FAILED"
-      const errorOutput = result.compileOutput || result.stderr;
+      // Prioritize identifying the most useful output for the user
+      const outputToShow = result.compileOutput || result.stderr || result.actualOutput || result.statusDescription;
       
       setRunResults((prev) => ({ 
         ...prev, 
         [questionId]: { 
-          output: errorOutput || result.statusDescription,
+          output: outputToShow,
           passed: result.passed,
           running: false 
         } 
