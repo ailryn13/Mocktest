@@ -277,6 +277,7 @@ export default function TakeExamPage() {
           expected: result.expectedOutput,
           error: result.compileOutput || result.stderr,
           status: result.statusDescription,
+          statusDescription: result.statusDescription,
           passed: result.passed,
           running: false 
         } 

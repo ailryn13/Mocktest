@@ -150,18 +150,20 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                 // Normalize newlines and trim for robust comparison
                 String normalizedExpected = expectedOutput.replace("\r\n", "\n").trim();
                 
-                boolean matches = actual.equals(normalizedExpected);
+                // Case-insensitive comparison for student convenience
+                boolean matches = actual.equalsIgnoreCase(normalizedExpected);
                 result.setPassed(isAccepted && matches);
+
+                // Provide clear mismatch reason
+                if (isAccepted && !matches) {
+                    result.setStatusDescription("Wrong Answer: Expected '" + normalizedExpected + "' but got '" + actual + "'");
+                }
                 
                 // Ensure DTO has clean values for the frontend
                 result.setExpectedOutput(normalizedExpected);
                 result.setTestInput(finalStdin);
                 
                 log.info("[DEBUG] Comparison - Passed: {}, Accepted: {}, Matches: {}", result.isPassed(), isAccepted, matches);
-                if (!matches) {
-                    log.info("[DEBUG] Actual output: [{}]", actual);
-                    log.info("[DEBUG] Expected output: [{}]", normalizedExpected);
-                }
             } else {
                 // If no test cases defined, just check if the code ran successfully (Accepted = 3)
                 boolean isAccepted = result.getStatusId() == 3;
