@@ -529,84 +529,45 @@ export default function TakeExamPage() {
                     onChange={(val) => setCodeValue(q.id, val)}
                   />
 
-                  {/* Run output */}
+                  {/* Minimalist Run output */}
                   {(() => {
                     const res = runResults[q.id];
                     if (!res || res.running) return null;
                     return (
                       <div className="space-y-3">
-                        {/* Prominent Failure Alert */}
+                        {/* Only show failure alert if not passed */}
                         {!res.passed && (
                           <div className="p-4 rounded-xl bg-red-900/30 border border-red-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
                             <div className="flex items-center gap-3 text-red-100 font-bold mb-2">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                               </svg>
-                              <span>Execution Failed</span>
+                              <span className="text-sm">Execution Failed</span>
                             </div>
-                            <p className="text-sm text-red-200 leading-relaxed">
-                              Your code did not pass the required test cases. This might be due to a logic error, incorrect output format, or case mismatch (e.g., "Hello World" vs "hello world").
-                              <br />
-                              <strong className="text-white mt-1 block">Please review the status details below and rewrite your code.</strong>
-                            </p>
+                            <div className="space-y-2">
+                              {/* Root Cause: Specific Error Message from Backend (Status Description) */}
+                              <p className="text-sm text-red-100 bg-red-950/40 p-3 rounded-lg border border-red-500/30 font-mono">
+                                <strong className="text-red-400">Error:</strong> {res.statusDescription || "Test case failed."}
+                              </p>
+                              
+                              {/* Detailed diagnostics (Stderr/Compile Errors) only if present */}
+                              {res.error && (
+                                <pre className="p-2 rounded bg-red-950/20 border border-red-950/50 text-[11px] text-red-300 font-mono whitespace-pre-wrap max-h-[150px] overflow-y-auto">
+                                  {res.error}
+                                </pre>
+                              )}
+                            </div>
                           </div>
                         )}
 
-                        <div className="rounded-lg bg-gray-800 border border-gray-700 p-4 space-y-4">
-                          <div className="flex items-center justify-between border-b border-gray-700 pb-2">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Execution Status:</p>
-                            <div className={`text-sm font-bold flex items-center gap-2 ${res.passed ? "text-green-400" : "text-red-400"}`}>
-                              {res.passed ? "SUCCESS ✅" : "FAILED ❌"}
-                              <span className="text-gray-500 text-[10px] font-normal px-2 py-0.5 rounded bg-gray-900 border border-gray-700">
-                                {res.status}
-                              </span>
-                            </div>
+                        {/* If passed, just show center-aligned success */}
+                        {res.passed && (
+                          <div className="text-center py-2">
+                            <span className="px-4 py-2 rounded-full bg-green-900/20 border border-green-500/40 text-green-400 font-bold text-sm animate-in zoom-in duration-300">
+                              SUCCESS ✅
+                            </span>
                           </div>
-
-                          <div className="space-y-4">
-                            {/* Test Input - Keep it if provided */}
-                            {res.input && (
-                              <div className="space-y-1">
-                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Test Input:</p>
-                                <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2rem]">
-                                  {res.input}
-                                </pre>
-                              </div>
-                            )}
-
-                            {/* Simplified Output - Show Your Output if it failed OR if there is actual output content */}
-                            {(!res.passed || (res.actual && res.actual.trim().length > 0)) && (
-                              <div className="space-x-4 flex">
-                                <div className="space-y-1 flex-1">
-                                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Your Output:</p>
-                                  <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto min-h-[2.5rem] whitespace-pre-wrap ${
-                                    res.passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
-                                  }`}>
-                                    {res.actual || "(No Output)"}
-                                  </pre>
-                                </div>
-                                {!res.passed && res.expected && (
-                                  <div className="space-y-1 flex-1">
-                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Expected Output:</p>
-                                    <pre className="p-2 rounded bg-gray-900/50 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2.5rem] whitespace-pre-wrap">
-                                      {res.expected}
-                                    </pre>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Error output (Compile/Runtime) */}
-                          {res.error && (
-                            <div className="space-y-1 border-t border-gray-700 pt-3">
-                              <p className="text-[10px] text-red-400 uppercase font-bold">Error/Diagnostics:</p>
-                              <pre className="p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300 font-mono whitespace-pre-wrap">
-                                {res.error}
-                              </pre>
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
                     );
                   })()}
