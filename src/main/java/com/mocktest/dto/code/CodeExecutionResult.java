@@ -11,8 +11,8 @@ public class CodeExecutionResult {
     private String stderr;
     private String compileOutput;
     private double executionTimeMs;
-    private int statusId;          // Judge0 status id (3 = Accepted)
     private String statusDescription;
+    private String testInput;
 
     public CodeExecutionResult() {}
 
@@ -39,4 +39,7 @@ public class CodeExecutionResult {
 
     public String getStatusDescription() { return statusDescription; }
     public void setStatusDescription(String statusDescription) { this.statusDescription = statusDescription; }
+
+    public String getTestInput() { return testInput; }
+    public void setTestInput(String testInput) { this.testInput = testInput; }
 }

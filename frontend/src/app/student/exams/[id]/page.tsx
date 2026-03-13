@@ -65,6 +65,7 @@ export default function TakeExamPage() {
   const [codeValues, setCodeValues] = useState<Record<number, string>>({});
   const [runResults, setRunResults] = useState<Record<number, { 
     output?: string; 
+    input?: string;
     actual?: string; 
     expected?: string; 
     error?: string; 
@@ -258,6 +259,7 @@ export default function TakeExamPage() {
         passed: boolean;
         actualOutput: string;
         expectedOutput: string;
+        testInput: string;
         stderr: string;
         compileOutput: string;
         statusDescription: string;
@@ -269,6 +271,7 @@ export default function TakeExamPage() {
       setRunResults((prev) => ({ 
         ...prev, 
         [questionId]: { 
+          input: result.testInput,
           actual: result.actualOutput,
           expected: result.expectedOutput,
           error: result.compileOutput || result.stderr,
@@ -557,21 +560,27 @@ export default function TakeExamPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* Test Input */}
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-gray-500 uppercase font-bold">Test Input:</p>
+                            <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2.5rem]">
+                              {runResults[q.id].input || "(None)"}
+                            </pre>
+                          </div>
+
                           {/* Expected Output */}
-                          {runResults[q.id].expected && (
-                            <div className="space-y-1">
-                              <p className="text-[10px] text-gray-500 uppercase font-bold">Expected Output:</p>
-                              <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto">
-                                {runResults[q.id].expected}
-                              </pre>
-                            </div>
-                          )}
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-gray-500 uppercase font-bold">Expected Output:</p>
+                            <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2.5rem]">
+                              {runResults[q.id].expected || "(Empty)"}
+                            </pre>
+                          </div>
 
                           {/* Actual Output */}
                           <div className="space-y-1">
                             <p className="text-[10px] text-gray-500 uppercase font-bold">Actual Output:</p>
-                            <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto ${
+                            <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto min-h-[2.5rem] ${
                               runResults[q.id].passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
                             }`}>
                               {runResults[q.id].actual || (runResults[q.id].error ? "---" : "(No Output)")}

@@ -153,6 +153,7 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                 // Ensure DTO has clean values for the frontend
                 result.setActualOutput(actual);
                 result.setExpectedOutput(normalizedExpected);
+                result.setTestInput(finalStdin);
                 
                 log.info("[DEBUG] Comparison - Passed: {}, Accepted: {}, Matches: {}", result.isPassed(), isAccepted, matches);
                 if (!matches) {
