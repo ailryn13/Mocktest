@@ -142,8 +142,19 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
             // Comparison logic
             if (expectedOutput != null) {
                 boolean isAccepted = result.getStatusId() == 3;
-                String actual = result.getActualOutput() != null ? result.getActualOutput().trim() : "";
-                result.setPassed(isAccepted && actual.equals(expectedOutput));
+                
+                // Normalize newlines and trim for robust comparison
+                String actual = result.getActualOutput() != null ? result.getActualOutput().replace("\r\n", "\n").trim() : "";
+                String normalizedExpected = expectedOutput.replace("\r\n", "\n").trim();
+                
+                boolean matches = actual.equals(normalizedExpected);
+                result.setPassed(isAccepted && matches);
+                
+                log.info("[DEBUG] Comparison - Passed: {}, Accepted: {}, Matches: {}", result.isPassed(), isAccepted, matches);
+                if (!matches) {
+                    log.info("[DEBUG] Actual output: [{}]", actual);
+                    log.info("[DEBUG] Expected output: [{}]", normalizedExpected);
+                }
             }
 
             return result;

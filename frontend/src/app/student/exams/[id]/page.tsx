@@ -547,10 +547,13 @@ export default function TakeExamPage() {
                               <div className={`text-lg font-bold ${runResults[q.id].passed ? "text-green-400" : "text-red-400"}`}>
                                 {runResults[q.id].passed ? "PASSED ✅" : "FAILED ❌"}
                               </div>
-                              {!runResults[q.id]?.passed && runResults[q.id]?.output && !runResults[q.id]?.output?.includes("Accepted") && (
-                                <pre className="mt-2 p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300">
-                                  {runResults[q.id]?.output}
-                                </pre>
+                              {!runResults[q.id]?.passed && runResults[q.id]?.output && (
+                                <div className="mt-2">
+                                  <p className="text-[10px] text-gray-500 uppercase mb-1 font-bold">Actual Output:</p>
+                                  <pre className="p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300">
+                                    {runResults[q.id]?.output}
+                                  </pre>
+                                </div>
                               )}
                             </>
                           )}
