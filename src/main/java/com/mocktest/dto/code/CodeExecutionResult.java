@@ -11,6 +11,7 @@ public class CodeExecutionResult {
     private String stderr;
     private String compileOutput;
     private double executionTimeMs;
+    private int statusId;          // Judge0 status id (3 = Accepted)
     private String statusDescription;
     private String testInput;
 
