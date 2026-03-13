@@ -2,9 +2,10 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useRef, useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import DiffViewer from "@/components/DiffViewer";
 
 const CodeEditor = dynamic(() => import("@/components/CodeEditor"), {
   ssr: false,
@@ -560,32 +561,20 @@ export default function TakeExamPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {/* Test Input */}
+                        <div className="space-y-4">
+                          {/* Test Input - Keeping it separate as it's common context */}
                           <div className="space-y-1">
-                            <p className="text-[10px] text-gray-500 uppercase font-bold">Test Input:</p>
-                            <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2.5rem]">
+                            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Test Input:</p>
+                            <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2rem]">
                               {runResults[q.id].input || "(None)"}
                             </pre>
                           </div>
 
-                          {/* Expected Output */}
-                          <div className="space-y-1">
-                            <p className="text-[10px] text-gray-500 uppercase font-bold">Expected Output:</p>
-                            <pre className="p-2 rounded bg-gray-900 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2.5rem]">
-                              {runResults[q.id].expected || "(Empty)"}
-                            </pre>
-                          </div>
-
-                          {/* Actual Output */}
-                          <div className="space-y-1">
-                            <p className="text-[10px] text-gray-500 uppercase font-bold">Actual Output:</p>
-                            <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto min-h-[2.5rem] ${
-                              runResults[q.id].passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
-                            }`}>
-                              {runResults[q.id].actual || (runResults[q.id].error ? "---" : "(No Output)")}
-                            </pre>
-                          </div>
+                          {/* Side-by-Side Comparison (HackerRank Style) */}
+                          <DiffViewer 
+                            expected={runResults[q.id].expected || ""} 
+                            actual={runResults[q.id].actual || ""} 
+                          />
                         </div>
 
                         {/* Error output (Compile/Runtime) */}
