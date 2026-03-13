@@ -72,6 +72,7 @@ export default function TakeExamPage() {
     running: boolean; 
     passed?: boolean;
     status?: string;
+    statusDescription?: string;
   }>>({});
 
   // Watermark timestamp — refreshes every 30 s so screenshots are time-stamped
