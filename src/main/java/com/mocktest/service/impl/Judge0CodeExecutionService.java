@@ -77,7 +77,10 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
                         if (finalStdin == null || finalStdin.isBlank()) {
                             finalStdin = first.getOrDefault("input", "");
                         }
-                        expectedOutput = first.getOrDefault("expected", "").trim();
+                        expectedOutput = first.containsKey("expectedOutput") 
+                            ? first.get("expectedOutput") 
+                            : first.getOrDefault("expected", "");
+                        if (expectedOutput != null) expectedOutput = expectedOutput.trim();
                     }
                 } catch (Exception e) {
                     log.warn("[DEBUG] Failed to parse test cases for question {}: {}", questionId, e.getMessage());
