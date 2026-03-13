@@ -44,7 +44,8 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
     private static final Map<String, Integer> LANGUAGE_MAP = Map.of(
             "java",   62,  // Java (OpenJDK 13)
             "python", 71,  // Python 3
-            "cpp",    54   // C++ (GCC 9)
+            "cpp",    54,  // C++ (GCC 9)
+            "c",      50   // C (GCC 9)
     );
 
     public Judge0CodeExecutionService(
