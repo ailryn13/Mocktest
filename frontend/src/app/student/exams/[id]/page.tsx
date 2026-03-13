@@ -574,15 +574,25 @@ export default function TakeExamPage() {
                               </div>
                             )}
 
-                            {/* Simplified Output - Show Your Output if failed or content exists */}
+                            {/* Simplified Output - Show Your Output if it failed OR if there is actual output content */}
                             {(!res.passed || (res.actual && res.actual.trim().length > 0)) && (
-                              <div className="space-y-1">
-                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Your Output:</p>
-                                <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto min-h-[2.5rem] whitespace-pre-wrap ${
-                                  res.passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
-                                }`}>
-                                  {res.actual || "(No Output)"}
-                                </pre>
+                              <div className="space-x-4 flex">
+                                <div className="space-y-1 flex-1">
+                                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Your Output:</p>
+                                  <pre className={`p-2 rounded border text-xs font-mono overflow-x-auto min-h-[2.5rem] whitespace-pre-wrap ${
+                                    res.passed ? "bg-green-900/10 border-green-900/50 text-green-300" : "bg-red-900/10 border-red-900/50 text-red-300"
+                                  }`}>
+                                    {res.actual || "(No Output)"}
+                                  </pre>
+                                </div>
+                                {!res.passed && res.expected && (
+                                  <div className="space-y-1 flex-1">
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Expected Output:</p>
+                                    <pre className="p-2 rounded bg-gray-900/50 border border-gray-700 text-xs text-gray-300 font-mono overflow-x-auto min-h-[2.5rem] whitespace-pre-wrap">
+                                      {res.expected}
+                                    </pre>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
