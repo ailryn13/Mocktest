@@ -519,23 +519,42 @@ export default function TakeExamPage() {
 
                   {/* Run output */}
                   {runResults[q.id] && !runResults[q.id].running && (
-                    <div className="rounded-lg bg-gray-800 border border-gray-700 p-3">
-                      <p className="text-xs text-gray-400 mb-1">Execution Status:</p>
-                      <div className="text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
-                        {runResults[q.id].error ? (
-                          <span className="text-red-400">{runResults[q.id].error}</span>
-                        ) : (
-                          <>
-                            <div className={`text-lg font-bold ${runResults[q.id].passed ? "text-green-400" : "text-red-400"}`}>
-                              {runResults[q.id].passed ? "PASSED ✅" : "FAILED ❌"}
-                            </div>
-                            {!runResults[q.id]?.passed && runResults[q.id]?.output && !runResults[q.id]?.output?.includes("Accepted") && (
-                              <pre className="mt-2 p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300">
-                                {runResults[q.id]?.output}
-                              </pre>
-                            )}
-                          </>
-                        )}
+                    <div className="space-y-3">
+                      {/* Prominent Failure Alert */}
+                      {!runResults[q.id].passed && (
+                        <div className="p-4 rounded-xl bg-red-900/30 border border-red-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div className="flex items-center gap-3 text-red-100 font-bold mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>Execution Failed</span>
+                          </div>
+                          <p className="text-sm text-red-200 leading-relaxed">
+                            Your code did not pass the required test cases. This might be due to a logic error, incorrect output format, or case mismatch (e.g., "Hello World" vs "hello world").
+                            <br />
+                            <strong className="text-white mt-1 block">Please review the status details below and rewrite your code.</strong>
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="rounded-lg bg-gray-800 border border-gray-700 p-3">
+                        <p className="text-xs text-gray-400 mb-1">Execution Status:</p>
+                        <div className="text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                          {runResults[q.id].error ? (
+                            <span className="text-red-400">{runResults[q.id].error}</span>
+                          ) : (
+                            <>
+                              <div className={`text-lg font-bold ${runResults[q.id].passed ? "text-green-400" : "text-red-400"}`}>
+                                {runResults[q.id].passed ? "PASSED ✅" : "FAILED ❌"}
+                              </div>
+                              {!runResults[q.id]?.passed && runResults[q.id]?.output && !runResults[q.id]?.output?.includes("Accepted") && (
+                                <pre className="mt-2 p-2 rounded bg-red-900/20 border border-red-900/50 text-xs text-red-300">
+                                  {runResults[q.id]?.output}
+                                </pre>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
