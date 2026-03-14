@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -85,7 +87,10 @@ public class AuthServiceImpl implements AuthService {
                 role,
                 department);
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        System.out.println("[DEBUG] Created user: " + savedUser.getEmail() + " (ID: "+savedUser.getId()+") for department: " + department.getName());
+
         return "User registered successfully";
     }
 
@@ -104,6 +109,30 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public List<UserResponse> getAllMediators() {
         return userRepository.findByRole(Role.MEDIATOR)
+                .stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserResponse> getMediatorsForAdmin() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String currentEmail;
+        if (principal instanceof UserDetails) {
+            currentEmail = ((UserDetails) principal).getUsername();
+        } else {
+            currentEmail = principal.toString();
+        }
+
+        User admin = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
+
+        if (admin.getDepartment() == null) {
+            // If it's the system-level admin with no department, return all (fallback)
+            return getAllMediators();
+        }
+
+        return userRepository.findByRoleAndDepartmentId(Role.MEDIATOR, admin.getDepartment().getId())
                 .stream()
                 .map(this::mapToUserResponse)
                 .collect(Collectors.toList());

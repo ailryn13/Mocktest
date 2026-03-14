@@ -18,6 +18,7 @@ public interface AuthService {
 
     // --- Admin-only Mediator Management ---
     java.util.List<com.mocktest.dto.auth.UserResponse> getAllMediators();
+    java.util.List<com.mocktest.dto.auth.UserResponse> getMediatorsForAdmin();
     com.mocktest.dto.auth.UserResponse updateMediator(Long id, RegisterRequest request);
     void deleteMediator(Long id);
 }

@@ -50,7 +50,9 @@ public class SuperAdminService {
         adminUser.setPasswordHash(passwordEncoder.encode(request.getAdminPassword()));
         adminUser.setRole(Role.ADMIN);
         adminUser.setDepartment(department);
-        userRepository.save(adminUser);
+        User savedAdmin = userRepository.save(adminUser);
+        
+        System.out.println("[DEBUG] Created admin user: " + savedAdmin.getEmail() + " for college: " + department.getName());
 
         return mapToResponse(department);
     }
