@@ -47,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
         System.out.println("[DEBUG] Login attempt for user: " + request.getEmail());
         try {
