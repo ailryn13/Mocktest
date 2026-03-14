@@ -72,7 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Redirect based on role (Case insensitive + support MODERATOR fallback)
     const roleUpper = primaryRole.toUpperCase();
     
-    if (roleUpper === "ADMIN") {
+    if (roleUpper === "SUPER_ADMIN") {
+      router.push("/super-admin");
+    } else if (roleUpper === "ADMIN") {
       router.push("/admin");
     } else if (roleUpper === "MEDIATOR" || roleUpper === "MODERATOR") {
       router.push("/mediator");
