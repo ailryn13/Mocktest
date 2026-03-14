@@ -1,6 +1,5 @@
 package com.mocktest.service;
 
-import com.mocktest.dto.superadmin.CreateAdminRequest;
 import com.mocktest.dto.superadmin.CreateDepartmentRequest;
 import com.mocktest.models.Department;
 import com.mocktest.models.User;
@@ -33,30 +32,27 @@ public class SuperAdminService {
         if (departmentRepository.findByName(request.getName()).isPresent()) {
             throw new IllegalArgumentException("Department with this name already exists");
         }
+        if (userRepository.existsByEmail(request.getAdminEmail())) {
+            throw new IllegalArgumentException("Admin email is already taken");
+        }
+
         Department department = new Department(request.getName());
-        return departmentRepository.save(department);
+        department.setAddress(request.getAddress());
+        department.setCode(request.getCode());
+        department = departmentRepository.save(department);
+
+        User adminUser = new User();
+        adminUser.setName(request.getAdminName());
+        adminUser.setEmail(request.getAdminEmail());
+        adminUser.setPasswordHash(passwordEncoder.encode(request.getAdminPassword()));
+        adminUser.setRole(Role.ADMIN);
+        adminUser.setDepartment(department);
+        userRepository.save(adminUser);
+
+        return department;
     }
 
     public List<Department> getAllDepartments() {
         return departmentRepository.findAll();
-    }
-
-    @Transactional
-    public User createDepartmentAdmin(Long departmentId, CreateAdminRequest request) {
-        Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email is already taken");
-        }
-
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ADMIN);
-        user.setDepartment(department);
-
-        return userRepository.save(user);
     }
 }

@@ -1,9 +1,7 @@
 package com.mocktest.controller;
 
-import com.mocktest.dto.superadmin.CreateAdminRequest;
 import com.mocktest.dto.superadmin.CreateDepartmentRequest;
 import com.mocktest.models.Department;
-import com.mocktest.models.User;
 import com.mocktest.service.SuperAdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +31,5 @@ public class SuperAdminController {
     public ResponseEntity<List<Department>> getAllDepartments() {
         List<Department> departments = superAdminService.getAllDepartments();
         return ResponseEntity.ok(departments);
-    }
-
-    @PostMapping("/{id}/admins")
-    public ResponseEntity<User> createDepartmentAdmin(@PathVariable Long id, @RequestBody CreateAdminRequest request) {
-        User admin = superAdminService.createDepartmentAdmin(id, request);
-        return new ResponseEntity<>(admin, HttpStatus.CREATED);
     }
 }

@@ -1,6 +1,5 @@
 package com.mocktest.config;
 
-import com.mocktest.models.Department;
 import com.mocktest.models.User;
 import com.mocktest.models.enums.Role;
 import com.mocktest.repositories.DepartmentRepository;
@@ -12,7 +11,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 
@@ -30,17 +28,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
-    private static final List<String> DEFAULT_DEPARTMENTS = List.of(
-            "Computer Science and Engineering",
-            "Electronics and Communication Engineering",
-            "Mechanical Engineering",
-            "Civil Engineering",
-            "Electrical and Electronics Engineering",
-            "Information Technology"
-    );
-
     private final UserRepository userRepository;
-    private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final DataSource dataSource;
 
@@ -63,11 +51,9 @@ public class DataSeeder implements CommandLineRunner {
     private String superAdminName;
 
     public DataSeeder(UserRepository userRepository,
-                      DepartmentRepository departmentRepository,
                       PasswordEncoder passwordEncoder,
                       DataSource dataSource) {
         this.userRepository = userRepository;
-        this.departmentRepository = departmentRepository;
         this.passwordEncoder = passwordEncoder;
         this.dataSource = dataSource;
     }
@@ -83,7 +69,6 @@ public class DataSeeder implements CommandLineRunner {
                 .load()
                 .migrate();
 
-        seedDepartments();
         seedUser(adminEmail, adminPassword, adminName, Role.ADMIN);
         seedUser(superAdminEmail, superAdminPassword, superAdminName, Role.SUPER_ADMIN);
     }
@@ -133,12 +118,4 @@ public class DataSeeder implements CommandLineRunner {
         log.info("Default {} user created: {} / {}", role, email, password);
     }
 
-    private void seedDepartments() {
-        for (String name : DEFAULT_DEPARTMENTS) {
-            if (departmentRepository.findByName(name).isEmpty()) {
-                departmentRepository.save(new Department(name));
-                log.info("Seeded department: {}", name);
-            }
-        }
-    }
 }

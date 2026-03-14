@@ -8,12 +8,11 @@ export interface Department {
 export interface CreateDepartmentRequest {
   name: string;
   description: string;
-}
-
-export interface CreateAdminRequest {
-  name: string;
-  email: string;
-  password?: string;
+  address: string;
+  code: string;
+  adminName: string;
+  adminEmail: string;
+  adminPassword: string;
 }
 
 export async function getDepartments(): Promise<Department[]> {
@@ -25,11 +24,4 @@ export async function createDepartment(data: CreateDepartmentRequest): Promise<D
     method: "POST",
     body: JSON.stringify(data),
   });
-}
-
-export async function createDepartmentAdmin(departmentId: number, data: CreateAdminRequest): Promise<any> {
-    return apiFetch<any>(`/super-admin/departments/${departmentId}/admins`, {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
 }

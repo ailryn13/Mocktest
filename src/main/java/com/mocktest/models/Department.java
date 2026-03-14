@@ -19,6 +19,12 @@ public class Department {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Column
+    private String address;
+
+    @Column(unique = true)
+    private String code;
+
     /* ---------- Constructors ---------- */
 
     public Department() {
@@ -45,5 +51,21 @@ public class Department {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

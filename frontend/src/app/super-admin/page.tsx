@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { getDepartments, createDepartment, createDepartmentAdmin, Department } from "@/lib/superAdminApi";
+import { getDepartments, createDepartment, Department } from "@/lib/superAdminApi";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, FormEvent } from "react";
 
@@ -14,19 +14,16 @@ export default function SuperAdminDashboard() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Department Modal State
+  // Department + Admin Modal State
   const [showDeptModal, setShowDeptModal] = useState(false);
   const [deptName, setDeptName] = useState("");
   const [deptDesc, setDeptDesc] = useState("");
-  const [savingDept, setSavingDept] = useState(false);
-
-  // Admin Modal State
-  const [showAdminModal, setShowAdminModal] = useState(false);
-  const [selectedDeptId, setSelectedDeptId] = useState<number | null>(null);
+  const [deptAddress, setDeptAddress] = useState("");
+  const [deptCode, setDeptCode] = useState("");
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
-  const [savingAdmin, setSavingAdmin] = useState(false);
+  const [savingDept, setSavingDept] = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -62,7 +59,15 @@ export default function SuperAdminDashboard() {
     setSuccess("");
     setSavingDept(true);
     try {
-      const created = await createDepartment({ name: deptName, description: deptDesc });
+      const created = await createDepartment({ 
+        name: deptName, 
+        description: deptDesc,
+        address: deptAddress,
+        code: deptCode,
+        adminName: adminName,
+        adminEmail: adminEmail,
+        adminPassword: adminPassword
+      });
       setDepartments((prev) => [...prev, created]);
       setSuccess("College created successfully.");
       closeDeptModal();
@@ -73,44 +78,15 @@ export default function SuperAdminDashboard() {
     }
   }
 
-  function openAdminModal(deptId: number) {
-    setSelectedDeptId(deptId);
-    setAdminName("");
-    setAdminEmail("");
-    setAdminPassword("");
-    setShowAdminModal(true);
-  }
-
-  function closeAdminModal() {
-    setShowAdminModal(false);
-    setSelectedDeptId(null);
-  }
-
   function closeDeptModal() {
     setShowDeptModal(false);
     setDeptName("");
     setDeptDesc("");
-  }
-
-  async function handleCreateAdmin(e: FormEvent) {
-    e.preventDefault();
-    if (selectedDeptId === null) return;
-    setError("");
-    setSuccess("");
-    setSavingAdmin(true);
-    try {
-      await createDepartmentAdmin(selectedDeptId, {
-        name: adminName,
-        email: adminEmail,
-        password: adminPassword,
-      });
-      setSuccess("Admin created successfully.");
-      closeAdminModal();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create admin");
-    } finally {
-      setSavingAdmin(false);
-    }
+    setDeptAddress("");
+    setDeptCode("");
+    setAdminName("");
+    setAdminEmail("");
+    setAdminPassword("");
   }
 
   if (loading) return null;
@@ -168,7 +144,6 @@ export default function SuperAdminDashboard() {
                   <tr className="border-b border-gray-800">
                     <th className="pb-2 text-gray-400 text-sm font-medium">ID</th>
                     <th className="pb-2 text-gray-400 text-sm font-medium">Name</th>
-                    <th className="pb-2 text-gray-400 text-sm font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -176,14 +151,6 @@ export default function SuperAdminDashboard() {
                     <tr key={dept.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                       <td className="py-3 text-gray-300">{index + 1}</td>
                       <td className="py-3 font-medium text-gray-200">{dept.name}</td>
-                      <td className="py-3 text-right">
-                        <button
-                          onClick={() => openAdminModal(dept.id)}
-                          className="px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-700 text-xs font-medium transition-colors cursor-pointer"
-                        >
-                          Add Admin
-                        </button>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -199,13 +166,35 @@ export default function SuperAdminDashboard() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h2 className="text-xl font-bold mb-4">Create College</h2>
             <form onSubmit={handleCreateDepartment} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={deptName}
+                    onChange={(e) => setDeptName(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={deptCode}
+                    onChange={(e) => setDeptCode(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Address</label>
                 <input
                   type="text"
                   required
-                  value={deptName}
-                  onChange={(e) => setDeptName(e.target.value)}
+                  value={deptAddress}
+                  onChange={(e) => setDeptAddress(e.target.value)}
                   className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -214,8 +203,46 @@ export default function SuperAdminDashboard() {
                 <textarea
                   value={deptDesc}
                   onChange={(e) => setDeptDesc(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[60px]"
                 />
+              </div>
+
+              <hr className="border-gray-800 my-4" />
+              <h3 className="text-lg font-semibold text-white">Admin Details</h3>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Admin Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                      className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button
@@ -238,62 +265,7 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-      {/* Add Admin Modal */}
-      {showAdminModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">Add College Admin</h2>
-            <form onSubmit={handleCreateAdmin} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
-                <input
-                  type="text"
-                  required
-                  value={adminName}
-                  onChange={(e) => setAdminName(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={closeAdminModal}
-                  className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-medium text-sm transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingAdmin}
-                  className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium text-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {savingAdmin ? "Saving..." : "Add Admin"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
