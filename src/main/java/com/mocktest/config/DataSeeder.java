@@ -15,14 +15,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Seeds a default ADMIN user on first startup so that mediators
- * and students can subsequently be onboarded via the admin endpoints.
+ * Seeds default ADMIN and SUPER_ADMIN users on first startup.
  *
  * <p>Credentials are configurable via application.properties:</p>
  * <pre>
- *   app.admin.email=superadmin@mocktest.app
- *   app.admin.password=SuperAdmin@123456
- *   app.admin.name=SuperAdmin
+ *   app.admin.email / app.admin.password / app.admin.name
+ *   app.superadmin.email / app.superadmin.password / app.superadmin.name
  * </pre>
  */
 @Component
@@ -43,14 +41,23 @@ public class DataSeeder implements CommandLineRunner {
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.admin.email:superadmin@mocktest.app}")
+    @Value("${app.admin.email:admin@mocktest.com}")
     private String adminEmail;
 
-    @Value("${app.admin.password:SuperAdmin@123456}")
+    @Value("${app.admin.password:admin123}")
     private String adminPassword;
 
-    @Value("${app.admin.name:SuperAdmin}")
+    @Value("${app.admin.name:Admin}")
     private String adminName;
+
+    @Value("${app.superadmin.email:superadmin@mocktest.app}")
+    private String superAdminEmail;
+
+    @Value("${app.superadmin.password:SuperAdmin@123456}")
+    private String superAdminPassword;
+
+    @Value("${app.superadmin.name:Super Admin}")
+    private String superAdminName;
 
     public DataSeeder(UserRepository userRepository,
                       DepartmentRepository departmentRepository,
@@ -63,45 +70,53 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         seedDepartments();
-        var existingUser = userRepository.findByEmail(adminEmail);
+        seedUser(adminEmail, adminPassword, adminName, Role.ADMIN);
+        seedUser(superAdminEmail, superAdminPassword, superAdminName, Role.SUPER_ADMIN);
+    }
+
+    /**
+     * Seeds or normalizes a user with the given role.
+     */
+    private void seedUser(String email, String password, String name, Role role) {
+        var existingUser = userRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             boolean updated = false;
 
-            if (user.getRole() != Role.ADMIN) {
-                user.setRole(Role.ADMIN);
+            if (user.getRole() != role) {
+                user.setRole(role);
                 updated = true;
             }
 
-            if (!passwordEncoder.matches(adminPassword, user.getPasswordHash())) {
-                user.setPasswordHash(passwordEncoder.encode(adminPassword));
+            if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+                user.setPasswordHash(passwordEncoder.encode(password));
                 updated = true;
             }
 
-            if (!adminName.equals(user.getName())) {
-                user.setName(adminName);
+            if (!name.equals(user.getName())) {
+                user.setName(name);
                 updated = true;
             }
 
             if (updated) {
                 userRepository.save(user);
-                log.info("Admin user '{}' found and normalized to ADMIN credentials.", adminEmail);
+                log.info("{} user '{}' found and normalized.", role, email);
             } else {
-                log.info("Admin user '{}' already exists and is valid.", adminEmail);
+                log.info("{} user '{}' already exists and is valid.", role, email);
             }
             return;
         }
 
-        User admin = new User(
-                adminName,
-                adminEmail,
-                passwordEncoder.encode(adminPassword),
-                Role.ADMIN,
-                null   // admin has no department
+        User user = new User(
+                name,
+                email,
+                passwordEncoder.encode(password),
+                role,
+                null   // no department (system-level user)
         );
 
-        userRepository.save(admin);
-        log.info("Default ADMIN user created: {} / {}", adminEmail, adminPassword);
+        userRepository.save(user);
+        log.info("Default {} user created: {} / {}", role, email, password);
     }
 
     private void seedDepartments() {

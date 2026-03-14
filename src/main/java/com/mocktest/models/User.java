@@ -2,15 +2,20 @@ package com.mocktest.models;
 
 import com.mocktest.models.enums.Role;
 import jakarta.persistence.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 
 /**
- * Represents every person who can log in – Admin, Mediator, or Student.
+ * Represents every person who can log in – Admin, Mediator, Student, or Super Admin.
  *
  * <p>Mapped to the <b>users</b> table in PostgreSQL.
  * The {@code department_id} column is a foreign key to {@link Department}.</p>
  */
 @Entity
 @Table(name = "users")
+@FilterDef(name = "departmentFilter", parameters = @ParamDef(name = "departmentId", type = Long.class))
+@Filter(name = "departmentFilter", condition = "department_id = :departmentId")
 public class User {
 
     @Id

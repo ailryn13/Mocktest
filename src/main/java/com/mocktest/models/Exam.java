@@ -2,6 +2,8 @@ package com.mocktest.models;
 
 import com.mocktest.models.enums.ExamType;
 import jakarta.persistence.*;
+import org.hibernate.annotations.Filter;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "exams")
+@Filter(name = "departmentFilter",
+        condition = "mediator_id IN (SELECT u.id FROM users u WHERE u.department_id = :departmentId)")
 public class Exam {
 
     @Id

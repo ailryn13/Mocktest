@@ -64,9 +64,9 @@ public class SecurityConfig {
                 // Let CORS pre-flight requests pass through without auth
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()        // login / password-reset
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/mediator/**").hasRole("MEDIATOR")
-                .requestMatchers("/api/student/**").hasRole("STUDENT")
+                .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/api/mediator/**").hasAnyRole("MEDIATOR", "SUPER_ADMIN")
+                .requestMatchers("/api/student/**").hasAnyRole("STUDENT", "SUPER_ADMIN")
                 .anyRequest().authenticated()
             )
             // Return 401 (not 403) when the JWT is missing or expired
