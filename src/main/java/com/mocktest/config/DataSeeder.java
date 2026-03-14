@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
 
 /**
  * Seeds default ADMIN and SUPER_ADMIN users on first startup.
@@ -40,6 +42,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DataSource dataSource;
 
     @Value("${app.admin.email:admin@mocktest.com}")
     private String adminEmail;
@@ -61,14 +64,25 @@ public class DataSeeder implements CommandLineRunner {
 
     public DataSeeder(UserRepository userRepository,
                       DepartmentRepository departmentRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder,
+                      DataSource dataSource) {
         this.userRepository = userRepository;
         this.departmentRepository = departmentRepository;
         this.passwordEncoder = passwordEncoder;
+        this.dataSource = dataSource;
     }
 
     @Override
     public void run(String... args) {
+        log.info("Running Flyway migrations manually after Hibernate schema generation...");
+        Flyway.configure()
+                .dataSource(dataSource)
+                .baselineOnMigrate(true)
+                .baselineVersion("0")
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
         seedDepartments();
         seedUser(adminEmail, adminPassword, adminName, Role.ADMIN);
         seedUser(superAdminEmail, superAdminPassword, superAdminName, Role.SUPER_ADMIN);
