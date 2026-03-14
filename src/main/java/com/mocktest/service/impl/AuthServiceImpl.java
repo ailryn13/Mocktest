@@ -48,18 +48,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        // Spring Security will throw BadCredentialsException on failure
-        authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(), request.getPassword()));
+        System.out.println("[DEBUG] Login attempt for user: " + request.getEmail());
+        try {
+            // Spring Security will throw BadCredentialsException on failure
+            authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(), request.getPassword()));
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        String token = tokenProvider.generateToken(
-                user.getEmail(), user.getRole().name());
+            String token = tokenProvider.generateToken(
+                    user.getEmail(), user.getRole().name());
 
-        return new LoginResponse(token, java.util.List.of(user.getRole().name()), user.getName());
+            System.out.println("[DEBUG] Login successful for user: " + request.getEmail() + " with role: " + user.getRole());
+            return new LoginResponse(token, java.util.List.of(user.getRole().name()), user.getName());
+        } catch (Exception e) {
+            System.err.println("[ERROR] Login failed for user: " + request.getEmail() + " - " + e.getMessage());
+            throw e;
+        }
     }
 
     @Override

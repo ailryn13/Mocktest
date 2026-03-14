@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mocktest.exception.BadRequestException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,29 +33,36 @@ public class SuperAdminService {
 
     @Transactional
     public DepartmentResponse createDepartment(CreateDepartmentRequest request) {
-        if (departmentRepository.findByName(request.getName()).isPresent()) {
-            throw new IllegalArgumentException("Department with this name already exists");
+        try {
+            if (departmentRepository.findByName(request.getName()).isPresent()) {
+                throw new BadRequestException("Department already exists with name: " + request.getName());
+            }
+            if (userRepository.existsByEmail(request.getAdminEmail())) {
+                throw new BadRequestException("Email already taken: " + request.getAdminEmail());
+            }
+
+            Department department = new Department(request.getName());
+            department.setAddress(request.getAddress());
+            department.setCode(request.getCode());
+            department = departmentRepository.save(department);
+            System.out.println("[DEBUG] Saved department: " + department.getName() + " (ID: " + department.getId() + ")");
+
+            User adminUser = new User();
+            adminUser.setName(request.getAdminName());
+            adminUser.setEmail(request.getAdminEmail());
+            adminUser.setPasswordHash(passwordEncoder.encode(request.getAdminPassword()));
+            adminUser.setRole(Role.ADMIN);
+            adminUser.setDepartment(department);
+            User savedAdmin = userRepository.save(adminUser);
+            
+            System.out.println("[DEBUG] Created admin user: " + savedAdmin.getEmail() + " (ID: " + savedAdmin.getId() + ") for college: " + department.getName());
+
+            return mapToResponse(department);
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to create department/admin: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
-        if (userRepository.existsByEmail(request.getAdminEmail())) {
-            throw new IllegalArgumentException("Admin email is already taken");
-        }
-
-        Department department = new Department(request.getName());
-        department.setAddress(request.getAddress());
-        department.setCode(request.getCode());
-        department = departmentRepository.save(department);
-
-        User adminUser = new User();
-        adminUser.setName(request.getAdminName());
-        adminUser.setEmail(request.getAdminEmail());
-        adminUser.setPasswordHash(passwordEncoder.encode(request.getAdminPassword()));
-        adminUser.setRole(Role.ADMIN);
-        adminUser.setDepartment(department);
-        User savedAdmin = userRepository.save(adminUser);
-        
-        System.out.println("[DEBUG] Created admin user: " + savedAdmin.getEmail() + " for college: " + department.getName());
-
-        return mapToResponse(department);
     }
 
     public List<DepartmentResponse> getAllDepartments() {
