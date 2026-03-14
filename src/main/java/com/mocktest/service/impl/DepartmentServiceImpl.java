@@ -28,11 +28,21 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional
     public DepartmentResponse create(DepartmentRequest request) {
         if (departmentRepository.findByName(request.getName()).isPresent()) {
             throw new BadRequestException("Department already exists: " + request.getName());
         }
+
         Department dept = new Department(request.getName());
+
+        // For Admins, automatically link to their college
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
+        if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
+            dept.setParent(currentUser.getDepartment());
+        }
+
         dept = departmentRepository.save(dept);
         return toResponse(dept);
     }
@@ -40,8 +50,25 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     @Transactional(readOnly = true)
     public List<DepartmentResponse> getAll() {
-        return departmentRepository.findAll()
-                .stream().map(this::toResponse).collect(Collectors.toList());
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
+
+        // If Admin, show only their sub-departments
+        if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
+            if (currentUser.getDepartment() != null) {
+                return departmentRepository.findAll().stream()
+                        .filter(d -> d.getParent() != null && d.getParent().getId().equals(currentUser.getDepartment().getId()))
+                        .map(this::toResponse)
+                        .collect(Collectors.toList());
+            }
+            return List.of();
+        }
+
+        // For Super Admin (or if no department), show only top-level Colleges
+        return departmentRepository.findAll().stream()
+                .filter(d -> d.getParent() == null)
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -49,6 +76,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     public DepartmentResponse getById(Long id) {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + id));
+        checkAdminAccess(dept);
         return toResponse(dept);
     }
 
@@ -57,6 +85,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     public DepartmentResponse update(Long id, DepartmentRequest request) {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + id));
+        checkAdminAccess(dept);
         dept.setName(request.getName());
         dept = departmentRepository.save(dept);
         return toResponse(dept);
@@ -65,18 +94,30 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!departmentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Department not found: " + id);
-        }
+        Department dept = departmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + id));
+        checkAdminAccess(dept);
+
         // Null-out the department for any users currently assigned to it
         userRepository.findByDepartmentId(id).forEach(user -> {
             user.setDepartment(null);
             userRepository.save(user);
         });
-        departmentRepository.deleteById(id);
+        departmentRepository.delete(dept);
     }
 
     private DepartmentResponse toResponse(Department dept) {
         return new DepartmentResponse(dept.getId(), dept.getName());
+    }
+
+    private void checkAdminAccess(Department targetDept) {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
+
+        if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
+            if (targetDept.getParent() == null || !targetDept.getParent().getId().equals(currentUser.getDepartment().getId())) {
+                throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this department");
+            }
+        }
     }
 }

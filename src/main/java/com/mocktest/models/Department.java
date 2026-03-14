@@ -28,6 +28,10 @@ public class Department {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Department parent;
+
     /* ---------- Constructors ---------- */
 
     public Department() {
@@ -78,5 +82,13 @@ public class Department {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Department getParent() {
+        return parent;
+    }
+
+    public void setParent(Department parent) {
+        this.parent = parent;
     }
 }
