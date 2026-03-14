@@ -127,7 +127,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponse> getAllMediators() {
-        return userRepository.findByRole(Role.MEDIATOR)
+        return userRepository.findByRoleWithDepartment(Role.MEDIATOR)
                 .stream()
                 .map(this::mapToUserResponse)
                 .collect(Collectors.toList());

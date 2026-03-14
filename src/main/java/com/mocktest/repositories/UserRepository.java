@@ -17,7 +17,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /** Check whether an email is already registered. */
     boolean existsByEmail(String email);
 
-    /** Fetch all users that share a given role (e.g. all STUDENTs). */
+    /** Fetch all users that share a given role, pre-loading department and its parent. */
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u LEFT JOIN FETCH u.department d LEFT JOIN FETCH d.parent WHERE u.role = :role")
+    List<User> findByRoleWithDepartment(Role role);
+
+    /** Fetch all users that share a given role (standard). */
     List<User> findByRole(Role role);
 
     /** Fetch all users belonging to a specific department. */

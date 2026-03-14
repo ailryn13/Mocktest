@@ -56,8 +56,8 @@ public class DepartmentServiceImpl implements DepartmentService {
         // If Admin, show only their sub-departments
         if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
             if (currentUser.getDepartment() != null) {
-                return departmentRepository.findAll().stream()
-                        .filter(d -> d.getParent() != null && d.getParent().getId().equals(currentUser.getDepartment().getId()))
+                return departmentRepository.findByParentId(currentUser.getDepartment().getId())
+                        .stream()
                         .map(this::toResponse)
                         .collect(Collectors.toList());
             }
@@ -65,8 +65,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
 
         // For Super Admin (or if no department), show only top-level Colleges
-        return departmentRepository.findAll().stream()
-                .filter(d -> d.getParent() == null)
+        return departmentRepository.findByParentIsNull().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
