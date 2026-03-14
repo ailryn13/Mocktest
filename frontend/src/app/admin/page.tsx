@@ -227,12 +227,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <div className="flex flex-col">
-              <p className="text-gray-400">Welcome, {user.name}</p>
-              {user.departmentName && (
-                <p className="text-blue-400 text-sm font-semibold">College: {user.departmentName}</p>
-              )}
-            </div>
+            <p className="text-gray-400">Welcome, {user.name}</p>
           </div>
           <button
             onClick={logout}

@@ -30,7 +30,7 @@ public class AdminController {
 
     @GetMapping("/mediators")
     public ResponseEntity<java.util.List<UserResponse>> getAllMediators() {
-        return ResponseEntity.ok(authService.getMediatorsForAdmin());
+        return ResponseEntity.ok(authService.getAllMediators());
     }
 
     @PutMapping("/mediators/{id}")
