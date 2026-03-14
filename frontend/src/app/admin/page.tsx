@@ -407,9 +407,9 @@ export default function AdminDashboard() {
               onChange={(e) => setMedDeptId(e.target.value ? Number(e.target.value) : "")}
               className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">{user.departmentName || "Select Department"}</option>
+              <option value="">{departments.filter(d => d.id !== user.departmentId).length > 0 ? "Select Department" : "No Departments Added"}</option>
               {departments
-                .filter(d => d.name !== user.departmentName)
+                .filter(d => d.id !== user.departmentId)
                 .map((d) => (
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
