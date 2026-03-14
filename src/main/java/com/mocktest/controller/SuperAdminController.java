@@ -1,7 +1,9 @@
 package com.mocktest.controller;
 
 import com.mocktest.dto.superadmin.CreateDepartmentRequest;
-import com.mocktest.models.Department;
+import com.mocktest.dto.superadmin.DepartmentResponse;
+import com.mocktest.dto.superadmin.UpdateDepartmentRequest;
+import com.mocktest.dto.superadmin.UpdateDepartmentStatusRequest;
 import com.mocktest.service.SuperAdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +24,32 @@ public class SuperAdminController {
     }
 
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@RequestBody CreateDepartmentRequest request) {
-        Department department = superAdminService.createDepartment(request);
+    public ResponseEntity<DepartmentResponse> createDepartment(@RequestBody CreateDepartmentRequest request) {
+        DepartmentResponse department = superAdminService.createDepartment(request);
         return new ResponseEntity<>(department, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<Department>> getAllDepartments() {
-        List<Department> departments = superAdminService.getAllDepartments();
+    public ResponseEntity<List<DepartmentResponse>> getAllDepartments() {
+        List<DepartmentResponse> departments = superAdminService.getAllDepartments();
         return ResponseEntity.ok(departments);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<DepartmentResponse> updateDepartment(@PathVariable Long id, @RequestBody UpdateDepartmentRequest request) {
+        DepartmentResponse updated = superAdminService.updateDepartment(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
+        superAdminService.deleteDepartment(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<DepartmentResponse> toggleDepartmentStatus(@PathVariable Long id, @RequestBody UpdateDepartmentStatusRequest request) {
+        DepartmentResponse updated = superAdminService.updateDepartmentStatus(id, request.getIsActive());
+        return ResponseEntity.ok(updated);
     }
 }

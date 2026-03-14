@@ -25,6 +25,9 @@ public class Department {
     @Column(unique = true)
     private String code;
 
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
     /* ---------- Constructors ---------- */
 
     public Department() {
@@ -67,5 +70,13 @@ public class Department {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }
