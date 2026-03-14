@@ -38,6 +38,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DepartmentResponse> getAll() {
         String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
         com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
@@ -51,6 +52,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DepartmentResponse getById(Long id) {
         checkAdminAccess(id);
         Department dept = departmentRepository.findById(id)
@@ -59,6 +61,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional
     public DepartmentResponse update(Long id, DepartmentRequest request) {
         checkAdminAccess(id);
         Department dept = departmentRepository.findById(id)

@@ -124,6 +124,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllMediators() {
         return userRepository.findByRole(Role.MEDIATOR)
                 .stream()
@@ -132,6 +133,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponse> getMediatorsForAdmin() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String currentEmail;
