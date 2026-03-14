@@ -64,10 +64,10 @@ export default function SuperAdminDashboard() {
     try {
       const created = await createDepartment({ name: deptName, description: deptDesc });
       setDepartments((prev) => [...prev, created]);
-      setSuccess("Department created successfully.");
+      setSuccess("College created successfully.");
       closeDeptModal();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create department");
+      setError(err instanceof Error ? err.message : "Failed to create college");
     } finally {
       setSavingDept(false);
     }
@@ -147,12 +147,12 @@ export default function SuperAdminDashboard() {
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold">Departments</h2>
+            <h2 className="text-lg font-semibold">Colleges</h2>
             <button
               onClick={() => setShowDeptModal(true)}
               className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 font-medium text-sm transition-colors cursor-pointer"
             >
-              + Create Department
+              + Create College
             </button>
           </div>
 
@@ -160,7 +160,7 @@ export default function SuperAdminDashboard() {
           {fetching ? (
             <p className="text-gray-500 text-sm">Loading...</p>
           ) : departments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No departments yet.</p>
+            <p className="text-gray-500 text-sm">No colleges yet.</p>
           ) : (
              <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -197,7 +197,7 @@ export default function SuperAdminDashboard() {
       {showDeptModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">Create Department</h2>
+            <h2 className="text-xl font-bold mb-4">Create College</h2>
             <form onSubmit={handleCreateDepartment} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
@@ -242,7 +242,7 @@ export default function SuperAdminDashboard() {
       {showAdminModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">Add Department Admin</h2>
+            <h2 className="text-xl font-bold mb-4">Add College Admin</h2>
             <form onSubmit={handleCreateAdmin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
