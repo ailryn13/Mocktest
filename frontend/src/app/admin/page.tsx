@@ -261,6 +261,29 @@ export default function AdminDashboard() {
             Add units like "Computer Science" or "Physics" under your college.
           </p>
 
+          {/* Quick Add Suggestions */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <span className="text-xs text-gray-400 w-full mb-1">Common Suggestion:</span>
+            {[
+              "Computer Science and Engineering",
+              "Information Technology",
+              "Electronics and Communication Engineering",
+              "Electrical and Electronics Engineering",
+              "Mechanical Engineering",
+              "Civil Engineering",
+              "Artificial Intelligence and Data Science"
+            ].map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => setDeptName(name)}
+                className="px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-[10px] text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer"
+              >
+                + {name}
+              </button>
+            ))}
+          </div>
+
           {/* Add / Edit form */}
           <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
             <input
