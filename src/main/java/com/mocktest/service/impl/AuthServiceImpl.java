@@ -62,7 +62,17 @@ public class AuthServiceImpl implements AuthService {
                     user.getEmail(), user.getRole().name());
 
             System.out.println("[DEBUG] Login successful for user: " + request.getEmail() + " with role: " + user.getRole());
-            return new LoginResponse(token, java.util.List.of(user.getRole().name()), user.getName());
+            
+            Long deptId = user.getDepartment() != null ? user.getDepartment().getId() : null;
+            String deptName = user.getDepartment() != null ? user.getDepartment().getName() : null;
+
+            return new LoginResponse(
+                token, 
+                java.util.List.of(user.getRole().name()), 
+                user.getName(),
+                deptId,
+                deptName
+            );
         } catch (Exception e) {
             System.err.println("[ERROR] Login failed for user: " + request.getEmail() + " - " + e.getMessage());
             throw e;

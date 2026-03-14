@@ -15,6 +15,8 @@ interface User {
   email: string;
   role: string;
   token: string;
+  departmentId?: number;
+  departmentName?: string;
 }
 
 interface AuthContextType {
@@ -36,16 +38,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem("token");
     const name = localStorage.getItem("userName");
     const role = localStorage.getItem("userRole");
-
     const email = localStorage.getItem("userEmail") ?? "";
+    const departmentId = localStorage.getItem("userDepartmentId");
+    const departmentName = localStorage.getItem("userDepartmentName");
+
     if (token && name && role) {
-      setUser({ token, name, email, role });
+      setUser({ 
+        token, 
+        name, 
+        email, 
+        role,
+        departmentId: departmentId ? Number(departmentId) : undefined,
+        departmentName: departmentName || undefined
+      });
     }
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
-    const data = await apiFetch<{ token: string; roles: string[]; fullName: string }>(
+    const data = await apiFetch<{ 
+      token: string; 
+      roles: string[]; 
+      fullName: string;
+      departmentId?: number;
+      departmentName?: string;
+    }>(
       "/auth/login",
       {
         method: "POST",
@@ -60,12 +77,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("userName", data.fullName);
     localStorage.setItem("userEmail", email);
     localStorage.setItem("userRole", primaryRole);
+    if (data.departmentId) localStorage.setItem("userDepartmentId", data.departmentId.toString());
+    if (data.departmentName) localStorage.setItem("userDepartmentName", data.departmentName);
 
     const loggedInUser: User = {
       token: data.token,
       name: data.fullName,
       email,
       role: primaryRole,
+      departmentId: data.departmentId,
+      departmentName: data.departmentName,
     };
     setUser(loggedInUser);
 
@@ -90,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("userName");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("userDepartmentId");
+    localStorage.removeItem("userDepartmentName");
     setUser(null);
     router.push("/login");
   };

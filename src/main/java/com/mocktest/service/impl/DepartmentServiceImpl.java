@@ -39,12 +39,20 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public List<DepartmentResponse> getAll() {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
+
+        if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN && currentUser.getDepartment() != null) {
+            return List.of(toResponse(currentUser.getDepartment()));
+        }
+
         return departmentRepository.findAll()
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
     public DepartmentResponse getById(Long id) {
+        checkAdminAccess(id);
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + id));
         return toResponse(dept);
@@ -52,6 +60,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public DepartmentResponse update(Long id, DepartmentRequest request) {
+        checkAdminAccess(id);
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + id));
         dept.setName(request.getName());
@@ -62,6 +71,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     @Transactional
     public void delete(Long id) {
+        checkAdminAccess(id);
         if (!departmentRepository.existsById(id)) {
             throw new ResourceNotFoundException("Department not found: " + id);
         }
@@ -75,5 +85,16 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     private DepartmentResponse toResponse(Department dept) {
         return new DepartmentResponse(dept.getId(), dept.getName());
+    }
+
+    private void checkAdminAccess(Long targetDeptId) {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
+
+        if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
+            if (currentUser.getDepartment() == null || !currentUser.getDepartment().getId().equals(targetDeptId)) {
+                throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this department");
+            }
+        }
     }
 }

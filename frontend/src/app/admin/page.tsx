@@ -154,7 +154,7 @@ export default function AdminDashboard() {
             email: medEmail,
             password: medPassword || undefined, // Send only if changed
             role: "MEDIATOR",
-            departmentId: medDeptId,
+            departmentId: user?.departmentId || medDeptId,
           }),
         });
         setMediators((prev) =>
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
             email: medEmail,
             password: medPassword,
             role: "MEDIATOR",
-            departmentId: medDeptId,
+            departmentId: user?.departmentId,
           }),
         });
         setRegisterSuccess("Mediator registered successfully");
@@ -179,7 +179,6 @@ export default function AdminDashboard() {
         setMedName("");
         setMedEmail("");
         setMedPassword("");
-        setMedDeptId("");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Operation failed");
@@ -228,7 +227,12 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <p className="text-gray-400">Welcome, {user.name}</p>
+            <div className="flex flex-col">
+              <p className="text-gray-400">Welcome, {user.name}</p>
+              {user.departmentName && (
+                <p className="text-blue-400 text-sm font-semibold">College: {user.departmentName}</p>
+              )}
+            </div>
           </div>
           <button
             onClick={logout}
@@ -250,83 +254,28 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Department Management */}
+        {/* Department Info */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold mb-4">Departments</h2>
-
-          {/* Add / Edit form */}
-          <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
-            <input
-              type="text"
-              required
-              value={deptName}
-              onChange={(e) => setDeptName(e.target.value)}
-              placeholder="Department name"
-              className="flex-1 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 font-medium text-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
-            >
-              {saving
-                ? "Saving..."
-                : editingId !== null
-                ? "Update"
-                : "Add"}
-            </button>
-            {editingId !== null && (
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-medium text-sm transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            )}
-          </form>
-
-          {/* Department list */}
-          {fetching ? (
-            <p className="text-gray-500 text-sm">Loading...</p>
-          ) : departments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No departments yet.</p>
+          <h2 className="text-lg font-semibold mb-2">College Information</h2>
+          {user.departmentName ? (
+            <div className="flex items-center gap-4">
+               <div>
+                 <p className="text-sm text-gray-400">Name</p>
+                 <p className="text-white font-medium">{user.departmentName}</p>
+               </div>
+               <div className="ml-8">
+                 <p className="text-sm text-gray-400">Status</p>
+                 <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-900/40 text-green-300 border border-green-800/50">
+                   Active
+                 </span>
+               </div>
+            </div>
           ) : (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-gray-800">
-                  <th className="pb-2 text-gray-400 text-sm font-medium">ID</th>
-                  <th className="pb-2 text-gray-400 text-sm font-medium">Name</th>
-                  <th className="pb-2 text-gray-400 text-sm font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {departments.map((dept, index) => (
-                  <tr key={dept.id} className="border-b border-gray-800/50">
-                    <td className="py-3 text-gray-300">{index + 1}</td>
-                    <td className="py-3">{dept.name}</td>
-                    <td className="py-3 text-right space-x-2">
-                      <button
-                        onClick={() => startEdit(dept)}
-                        className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs font-medium transition-colors cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(dept.id)}
-                        className="px-3 py-1 rounded bg-red-700 hover:bg-red-600 text-xs font-medium transition-colors cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <p className="text-gray-500 text-sm">No college information available.</p>
           )}
         </div>
 
-        {/* Register / Edit Mediator */}
+        {/* Mediator Registration / Edit */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">{editingMediatorId ? "Edit Mediator" : "Register Mediator"}</h2>
@@ -334,11 +283,14 @@ export default function AdminDashboard() {
               <button
                 onClick={cancelEditMediator}
                 className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
+               >
                 Cancel Edit
               </button>
             )}
           </div>
+          <p className="text-xs text-gray-500 mb-4">
+            Mediators will be automatically assigned to <strong>{user.departmentName || "your college"}</strong>.
+          </p>
           <form onSubmit={handleRegisterMediator} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
               type="text"
@@ -364,17 +316,6 @@ export default function AdminDashboard() {
               placeholder={editingMediatorId ? "New Password (optional)" : "Password"}
               className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <select
-              required
-              value={medDeptId}
-              onChange={(e) => setMedDeptId(e.target.value ? Number(e.target.value) : "")}
-              className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select Department</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
             <div className="md:col-span-2">
               <button
                 type="submit"
