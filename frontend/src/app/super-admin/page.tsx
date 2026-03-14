@@ -14,7 +14,7 @@ export default function SuperAdminDashboard() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Department + Admin Modal State
+  // College + Admin Modal State
   const [showDeptModal, setShowDeptModal] = useState(false);
   const [editDeptId, setEditDeptId] = useState<number | null>(null);
   const [deptName, setDeptName] = useState("");
@@ -48,7 +48,7 @@ export default function SuperAdminDashboard() {
       const data = await getDepartments();
       setDepartments(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load departments");
+      setError(err instanceof Error ? err.message : "Failed to load colleges");
     } finally {
       setFetching(false);
     }
@@ -81,7 +81,7 @@ export default function SuperAdminDashboard() {
       }
       closeDeptModal();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create college");
+      setError(err instanceof Error ? err.message : "Failed to save college details");
     } finally {
       setSavingDept(false);
     }

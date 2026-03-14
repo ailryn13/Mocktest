@@ -227,7 +227,12 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <p className="text-gray-400">Welcome, {user.name}</p>
+            <div className="flex flex-col">
+              <p className="text-gray-400">Welcome, {user.name}</p>
+              {user.departmentName && (
+                <p className="text-blue-400 text-sm font-semibold">College: {user.departmentName}</p>
+              )}
+            </div>
           </div>
           <button
             onClick={logout}
@@ -251,7 +256,10 @@ export default function AdminDashboard() {
 
         {/* Department Management */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold mb-4">Departments</h2>
+          <h2 className="text-lg font-semibold mb-4">Manage Departments</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Add units like "Computer Science" or "Physics" under your college.
+          </p>
 
           {/* Add / Edit form */}
           <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
@@ -288,8 +296,8 @@ export default function AdminDashboard() {
           {/* Department list */}
           {fetching ? (
             <p className="text-gray-500 text-sm">Loading...</p>
-          ) : departments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No departments yet.</p>
+          ) : departments.filter(d => d.name !== user.departmentName).length === 0 ? (
+            <p className="text-gray-500 text-sm">No sub-departments added yet.</p>
           ) : (
             <table className="w-full text-left">
               <thead>
@@ -300,7 +308,9 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {departments.map((dept, index) => (
+                {departments
+                  .filter(dept => dept.name !== user.departmentName)
+                  .map((dept, index) => (
                   <tr key={dept.id} className="border-b border-gray-800/50">
                     <td className="py-3 text-gray-300">{index + 1}</td>
                     <td className="py-3">{dept.name}</td>
@@ -339,6 +349,10 @@ export default function AdminDashboard() {
             )}
           </div>
 
+          <p className="text-xs text-gray-500 mb-4">
+            Mediators will be registered for <strong>{user.departmentName || "your college"}</strong>.
+          </p>
+
           <form onSubmit={handleRegisterMediator} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
               type="text"
@@ -370,8 +384,10 @@ export default function AdminDashboard() {
               onChange={(e) => setMedDeptId(e.target.value ? Number(e.target.value) : "")}
               className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select Department</option>
-              {departments.map((d) => (
+              <option value="">{user.departmentName || "Select Department"}</option>
+              {departments
+                .filter(d => d.name !== user.departmentName)
+                .map((d) => (
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
             </select>
