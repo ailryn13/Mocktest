@@ -1,7 +1,5 @@
 package com.mocktest.security;
 
-import com.mocktest.models.User;
-import com.mocktest.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -11,9 +9,7 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,10 +38,7 @@ public class RlsAspect {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private final UserRepository userRepository;
-
-    public RlsAspect(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public RlsAspect() {
     }
 
     /**
@@ -59,14 +52,10 @@ public class RlsAspect {
         // Only apply filter for authenticated users
         if (authentication != null
                 && authentication.isAuthenticated()
-                && authentication.getPrincipal() instanceof UserDetails userDetails) {
+                && authentication.getPrincipal() instanceof UserPrincipal principal) {
 
             // Check if SUPER_ADMIN — bypass all filters
-            boolean isSuperAdmin = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .anyMatch("ROLE_SUPER_ADMIN"::equals);
-
-            if (isSuperAdmin) {
+            if (principal.getRole() == com.mocktest.models.enums.Role.SUPER_ADMIN) {
                 log.debug("[RLS] SUPER_ADMIN detected — skipping department filter");
 
                 // Set the session variable so PostgreSQL RLS policies also grant full access
@@ -81,13 +70,10 @@ public class RlsAspect {
                 return joinPoint.proceed();
             }
 
-            // --- Non-SUPER_ADMIN: look up department from DB ---
-            String email = userDetails.getUsername();
-            User user = userRepository.findByEmail(email).orElse(null);
+            // --- Non-SUPER_ADMIN: use department from Principal ---
+            Long departmentId = principal.getDepartmentId();
 
-            if (user != null && user.getDepartment() != null) {
-                Long departmentId = user.getDepartment().getId();
-
+            if (departmentId != null) {
                 Session session = entityManager.unwrap(Session.class);
 
                 // 1. Enable Hibernate Filter (Application-Level RLS)
@@ -95,7 +81,7 @@ public class RlsAspect {
                         .setParameter("departmentId", departmentId);
 
                 log.debug("[RLS] Enabled departmentFilter for department_id={} user={}",
-                        departmentId, email);
+                        departmentId, principal.getUsername());
 
                 // 2. Set PostgreSQL Session Variables (Database-Level RLS)
                 try {
@@ -105,11 +91,10 @@ public class RlsAspect {
                             .getSingleResult();
                     entityManager.createNativeQuery(
                             "SELECT set_config('app.current_role', :role, true)")
-                            .setParameter("role", user.getRole().name())
+                            .setParameter("role", principal.getRole().name())
                             .getSingleResult();
                 } catch (Exception e) {
                     log.warn("[RLS] Failed to set PostgreSQL session variables: {}", e.getMessage());
-                    // Proceed with Hibernate filter even if DB session variable fails
                 }
 
                 try {
@@ -118,7 +103,6 @@ public class RlsAspect {
                     try {
                         session.disableFilter("departmentFilter");
                     } catch (Exception ignored) {
-                        // Filter may already be disabled
                     }
                 }
             }

@@ -33,13 +33,16 @@ public class CustomUserDetailsService implements UserDetailsService {
                      "Your college account has been deactivated.");
         }
 
-        return new org.springframework.security.core.userdetails.User(
+        Long deptId = user.getDepartment() != null ? user.getDepartment().getId() : null;
+        String deptName = user.getDepartment() != null ? user.getDepartment().getName() : null;
+
+        return new UserPrincipal(
+                user.getId(),
                 user.getEmail(),
                 user.getPasswordHash(),
-                true, // enabled
-                true, // accountNonExpired
-                true, // credentialsNonExpired
-                true, // accountNonLocked
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())),
+                deptId,
+                deptName,
+                user.getRole());
     }
 }
