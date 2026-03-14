@@ -152,7 +152,7 @@ public class AuthServiceImpl implements AuthService {
             return getAllMediators();
         }
 
-        return userRepository.findByRoleAndDepartmentId(Role.MEDIATOR, admin.getDepartment().getId())
+        return userRepository.findMediatorsByCollegeId(admin.getDepartment().getId())
                 .stream()
                 .map(this::mapToUserResponse)
                 .collect(Collectors.toList());

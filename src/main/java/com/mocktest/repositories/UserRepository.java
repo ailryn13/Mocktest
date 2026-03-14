@@ -24,6 +24,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /** Fetch all users that share a given role (standard). */
     List<User> findByRole(Role role);
 
+    /** Fetch all mediators belonging to a college or its sub-departments. */
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u JOIN FETCH u.department d LEFT JOIN FETCH d.parent WHERE u.role = 'MEDIATOR' AND (d.id = :collegeId OR d.parent.id = :collegeId)")
+    List<User> findMediatorsByCollegeId(@org.springframework.data.repository.query.Param("collegeId") Long collegeId);
+
     /** Fetch all users belonging to a specific department. */
     List<User> findByDepartmentId(Long departmentId);
 

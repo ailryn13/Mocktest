@@ -57,16 +57,6 @@ public class RlsAspect {
             // Check if SUPER_ADMIN — bypass all filters
             if (principal.getRole() == com.mocktest.models.enums.Role.SUPER_ADMIN) {
                 log.debug("[RLS] SUPER_ADMIN detected — skipping department filter");
-
-                // Set the session variable so PostgreSQL RLS policies also grant full access
-                try {
-                    entityManager.createNativeQuery(
-                            "SELECT set_config('app.current_role', 'SUPER_ADMIN', true)")
-                            .getSingleResult();
-                } catch (Exception e) {
-                    log.warn("[RLS] Failed to set app.current_role for SUPER_ADMIN: {}", e.getMessage());
-                }
-
                 return joinPoint.proceed();
             }
 
@@ -83,19 +73,9 @@ public class RlsAspect {
                 log.debug("[RLS] Enabled departmentFilter for department_id={} user={}",
                         departmentId, principal.getUsername());
 
-                // 2. Set PostgreSQL Session Variables (Database-Level RLS)
-                try {
-                    entityManager.createNativeQuery(
-                            "SELECT set_config('app.current_department_id', :deptId, true)")
-                            .setParameter("deptId", departmentId.toString())
-                            .getSingleResult();
-                    entityManager.createNativeQuery(
-                            "SELECT set_config('app.current_role', :role, true)")
-                            .setParameter("role", principal.getRole().name())
-                            .getSingleResult();
-                } catch (Exception e) {
-                    log.warn("[RLS] Failed to set PostgreSQL session variables: {}", e.getMessage());
-                }
+                // 2. Proceed with Aspect
+                log.debug("[RLS] Enabled departmentFilter for department_id={} user={}",
+                        departmentId, principal.getUsername());
 
                 try {
                     return joinPoint.proceed();
