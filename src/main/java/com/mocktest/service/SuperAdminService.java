@@ -66,7 +66,7 @@ public class SuperAdminService {
     }
 
     public List<DepartmentResponse> getAllDepartments() {
-        return departmentRepository.findAll().stream()
+        return departmentRepository.findByParentIsNull().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
