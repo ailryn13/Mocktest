@@ -47,6 +47,13 @@ public class RlsAspect {
      */
     @Around("within(@org.springframework.stereotype.Service *)")
     public Object applyDepartmentFilter(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 1. Skip RLS for authentication and identity management services.
+        // These need global visibility (e.g., login, user lookup, global email checks).
+        String className = joinPoint.getTarget().getClass().getSimpleName();
+        if (className.contains("AuthService") || className.contains("UserDetailsService")) {
+            return joinPoint.proceed();
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // Only apply filter for authenticated users
@@ -70,12 +77,8 @@ public class RlsAspect {
                 session.enableFilter("departmentFilter")
                         .setParameter("departmentId", departmentId);
 
-                log.debug("[RLS] Enabled departmentFilter for department_id={} user={}",
-                        departmentId, principal.getUsername());
-
-                // 2. Proceed with Aspect
-                log.debug("[RLS] Enabled departmentFilter for department_id={} user={}",
-                        departmentId, principal.getUsername());
+                log.debug("[RLS] Enabled departmentFilter for department_id={} class={} user={}",
+                        departmentId, className, principal.getUsername());
 
                 try {
                     return joinPoint.proceed();
