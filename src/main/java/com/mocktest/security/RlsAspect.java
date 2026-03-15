@@ -73,7 +73,13 @@ public class RlsAspect {
             if (departmentId != null) {
                 Session session = entityManager.unwrap(Session.class);
 
-                // 1. Enable Hibernate Filter (Application-Level RLS)
+                // 1. Check if filter is already enabled (to handle nested service calls)
+                boolean alreadyEnabled = session.getEnabledFilter("departmentFilter") != null;
+                if (alreadyEnabled) {
+                    return joinPoint.proceed();
+                }
+
+                // 2. Enable Hibernate Filter (Application-Level RLS)
                 session.enableFilter("departmentFilter")
                         .setParameter("departmentId", departmentId);
 

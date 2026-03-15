@@ -29,9 +29,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT u FROM User u JOIN FETCH u.department d LEFT JOIN FETCH d.parent WHERE u.role = 'MEDIATOR' AND (d.id = :collegeId OR d.parent.id = :collegeId)")
     List<User> findMediatorsByCollegeId(@org.springframework.data.repository.query.Param("collegeId") Long collegeId);
 
-    /** Fetch all users belonging to a specific department. */
-    List<User> findByDepartmentId(Long departmentId);
+    /** Fetch all users belonging to a specific department (optimized). */
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u LEFT JOIN FETCH u.department d LEFT JOIN FETCH d.parent WHERE d.id = :departmentId")
+    List<User> findByDepartmentId(@org.springframework.data.repository.query.Param("departmentId") Long departmentId);
 
-    /** Fetch all users with a specific role and department. */
-    List<User> findByRoleAndDepartmentId(Role role, Long departmentId);
+    /** Fetch all users with a specific role and department (optimized). */
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u LEFT JOIN FETCH u.department d LEFT JOIN FETCH d.parent WHERE u.role = :role AND d.id = :departmentId")
+    List<User> findByRoleAndDepartmentId(@org.springframework.data.repository.query.Param("role") Role role, @org.springframework.data.repository.query.Param("departmentId") Long departmentId);
 }
