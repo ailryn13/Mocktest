@@ -12,7 +12,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     /** Lookup a user by their unique email (used during authentication). */
-    Optional<User> findByEmail(String email);
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u LEFT JOIN FETCH u.department d LEFT JOIN FETCH d.parent WHERE u.email = :email")
+    Optional<User> findByEmail(@org.springframework.data.repository.query.Param("email") String email);
 
     /** Check whether an email is already registered. */
     boolean existsByEmail(String email);

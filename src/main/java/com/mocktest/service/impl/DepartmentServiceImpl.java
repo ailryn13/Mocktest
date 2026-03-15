@@ -53,8 +53,10 @@ public class DepartmentServiceImpl implements DepartmentService {
         String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
         com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
 
-        // If Admin, show only their sub-departments
-        if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
+        if (currentUser == null) return List.of();
+
+        // 1. If Admin, show only their sub-departments (the departments they created)
+        if (currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
             if (currentUser.getDepartment() != null) {
                 return departmentRepository.findByParentId(currentUser.getDepartment().getId())
                         .stream()
@@ -64,7 +66,22 @@ public class DepartmentServiceImpl implements DepartmentService {
             return List.of();
         }
 
-        // For Super Admin (or if no department), show only top-level Colleges
+        // 2. If Mediator, show all sibling departments under the SAME college
+        if (currentUser.getRole() == com.mocktest.models.enums.Role.MEDIATOR) {
+            if (currentUser.getDepartment() != null) {
+                Department myDept = currentUser.getDepartment();
+                // If the mediator is in a sub-unit, show siblings (all units under same college)
+                Long collegeId = (myDept.getParent() != null) ? myDept.getParent().getId() : myDept.getId();
+                
+                return departmentRepository.findByParentId(collegeId)
+                        .stream()
+                        .map(this::toResponse)
+                        .collect(Collectors.toList());
+            }
+            return List.of();
+        }
+
+        // 3. For Super Admin, show only top-level Colleges
         return departmentRepository.findByParentIsNull().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
