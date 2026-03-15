@@ -42,6 +42,9 @@ export default function AdminDashboard() {
   const [registeringSaving, setRegisteringSaving] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState("");
 
+  // Search state
+  const [medSearch, setMedSearch] = useState("");
+
   // Auth guard
   useEffect(() => {
     if (!loading) {
@@ -208,7 +211,6 @@ export default function AdminDashboard() {
     setRegisterSuccess("");
     setError("");
   }
-
   function cancelEditMediator() {
     setEditingMediatorId(null);
     setMedName("");
@@ -216,6 +218,12 @@ export default function AdminDashboard() {
     setMedPassword("");
     setMedDeptId("");
   }
+
+  const filteredMediators = mediators.filter(m => 
+    m.name.toLowerCase().includes(medSearch.toLowerCase()) ||
+    m.email.toLowerCase().includes(medSearch.toLowerCase()) ||
+    m.departmentName.toLowerCase().includes(medSearch.toLowerCase())
+  );
 
   if (loading) return null;
   if (!user || user.role !== "ADMIN") return null;
@@ -428,11 +436,25 @@ export default function AdminDashboard() {
 
         {/* Mediators List */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
-          <h2 className="text-lg font-semibold mb-4">Mediators</h2>
+          <h2 className="text-lg font-semibold mb-2">Mediators</h2>
+          
+          {/* Search bar */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search mediators by name, email or department..."
+              value={medSearch}
+              onChange={(e) => setMedSearch(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+          </div>
+
           {fetchingMediators ? (
             <p className="text-gray-500 text-sm">Loading mediators...</p>
-          ) : mediators.length === 0 ? (
-            <p className="text-gray-500 text-sm">No mediators registered.</p>
+          ) : filteredMediators.length === 0 ? (
+            <p className="text-gray-500 text-sm">
+              {medSearch ? "No mediators match your search." : "No mediators registered."}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -445,7 +467,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mediators.map((m) => (
+                  {filteredMediators.map((m) => (
                     <tr key={m.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                       <td className="py-3 text-gray-200">{m.name}</td>
                       <td className="py-3 text-gray-400 text-sm">{m.email}</td>

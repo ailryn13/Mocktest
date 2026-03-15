@@ -21,4 +21,6 @@ public interface AuthService {
     java.util.List<com.mocktest.dto.auth.UserResponse> getMediatorsForAdmin();
     com.mocktest.dto.auth.UserResponse updateMediator(Long id, RegisterRequest request);
     void deleteMediator(Long id);
+
+    void updatePassword(Long userId, String newPassword);
 }

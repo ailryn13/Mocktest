@@ -76,4 +76,36 @@ public class MediatorStudentController {
     public ResponseEntity<List<DepartmentResponse>> listDepartments() {
         return ResponseEntity.ok(departmentService.getAll());
     }
+
+    /** Reset a student's password. Restricted to students in the same department. */
+    @PutMapping("/students/{id}/password")
+    public ResponseEntity<String> updateStudentPassword(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request,
+            Principal principal) {
+        
+        String newPassword = request.get("password");
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new com.mocktest.exception.BadRequestException("Password cannot be empty");
+        }
+
+        com.mocktest.models.User mediator = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new com.mocktest.exception.ResourceNotFoundException("Mediator not found"));
+
+        com.mocktest.models.User student = userRepository.findById(id)
+                .orElseThrow(() -> new com.mocktest.exception.ResourceNotFoundException("Student not found"));
+
+        // Security check: ensure the target user is a STUDENT and in the SAME department
+        if (student.getRole() != Role.STUDENT) {
+            throw new com.mocktest.exception.BadRequestException("Can only reset passwords for students");
+        }
+
+        if (mediator.getDepartment() == null || student.getDepartment() == null ||
+            !mediator.getDepartment().getId().equals(student.getDepartment().getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("You can only reset passwords for students in your own department");
+        }
+
+        authService.updatePassword(id, newPassword);
+        return ResponseEntity.ok("Student password updated successfully");
+    }
 }

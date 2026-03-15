@@ -202,6 +202,17 @@ public class AuthServiceImpl implements AuthService {
         userRepository.delete(user);
     }
 
+    @Override
+    @Transactional
+    public void updatePassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        System.out.println("[DEBUG] Password updated for user: " + user.getEmail());
+    }
+
     private UserResponse mapToUserResponse(User user) {
         String deptName = user.getDepartment() != null ? user.getDepartment().getName() : "No Department";
         Long deptId = user.getDepartment() != null ? user.getDepartment().getId() : null;

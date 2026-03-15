@@ -26,6 +26,9 @@ export default function SuperAdminDashboard() {
   const [adminPassword, setAdminPassword] = useState("");
   const [savingDept, setSavingDept] = useState(false);
 
+  // Search state
+  const [collegeSearch, setCollegeSearch] = useState("");
+
   // Auth guard
   useEffect(() => {
     if (!loading) {
@@ -133,6 +136,11 @@ export default function SuperAdminDashboard() {
     setAdminPassword("");
   }
 
+  const filteredColleges = departments.filter(d => 
+    d.name.toLowerCase().includes(collegeSearch.toLowerCase()) ||
+    (d.code && d.code.toLowerCase().includes(collegeSearch.toLowerCase()))
+  );
+
   if (loading) return null;
   if (!user || user.role !== "SUPER_ADMIN") return null;
 
@@ -166,7 +174,7 @@ export default function SuperAdminDashboard() {
         )}
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Colleges</h2>
             <button
               onClick={() => setShowDeptModal(true)}
@@ -176,11 +184,24 @@ export default function SuperAdminDashboard() {
             </button>
           </div>
 
+          {/* Search bar */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search colleges by name or code..."
+              value={collegeSearch}
+              onChange={(e) => setCollegeSearch(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+          </div>
+
           {/* Department list */}
           {fetching ? (
             <p className="text-gray-500 text-sm">Loading...</p>
-          ) : departments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No colleges yet.</p>
+          ) : filteredColleges.length === 0 ? (
+            <p className="text-gray-500 text-sm">
+              {collegeSearch ? "No colleges match your search." : "No colleges yet."}
+            </p>
           ) : (
              <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -193,7 +214,7 @@ export default function SuperAdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {departments.map((dept, index) => (
+                  {filteredColleges.map((dept, index) => (
                     <tr key={dept.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                       <td className="py-3 text-gray-300">{dept.id}</td>
                       <td className="py-3 font-medium text-gray-200">{dept.name}</td>
