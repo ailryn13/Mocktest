@@ -114,13 +114,19 @@ export default function MediatorDashboard() {
       setStudents(studs);
       setDepartments(depts);
       setStudentsLoaded(true);
+
+      // Default to mediator's department if not already selected
+      if (!sDeptId && user?.departmentId) {
+        setSDeptId(String(user.departmentId));
+      }
     } catch (err) {
       setStudentError(err instanceof Error ? err.message : "Failed to load students");
     }
   }
 
   function resetStudentForm() {
-    setSName(""); setSEmail(""); setSPassword(""); setSDeptId("");
+    setSName(""); setSEmail(""); setSPassword(""); 
+    setSDeptId(user?.departmentId ? String(user.departmentId) : "");
     setStudentError(""); setStudentSuccess("");
     setShowStudentForm(false);
   }
