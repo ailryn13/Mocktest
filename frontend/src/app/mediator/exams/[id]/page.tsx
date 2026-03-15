@@ -848,7 +848,7 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                           type="text"
                           value={qLanguage}
                           onChange={(e) => setQLanguage(e.target.value)}
-                          placeholder="e.g. Java, Python, C++  (leave blank to allow any language)"
+                          placeholder="e.g. Java, Python, C++, C#"
                           className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         />
                         {qLanguage.trim() && (
@@ -963,7 +963,7 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                       <span className="font-mono text-gray-400">type, content, testCasesInput, testCasesExpected, marks, difficulty, <span className="text-violet-400 font-semibold">language</span>, <span className="text-red-400 font-semibold">bannedKeywords</span></span>
                       <br />
                       <span className="text-gray-600">language: </span>
-                      <span className="font-mono text-gray-500">java | python | cpp | javascript | c</span>
+                      <span className="font-mono text-gray-500">java | python | cpp | javascript | c | csharp</span>
                       <span className="text-gray-600"> &nbsp;&middot;&nbsp; bannedKeywords: </span>
                       <span className="font-mono text-gray-500">comma-separated, e.g. <span className="text-red-400">for,while,import</span> (optional)</span>
                     </p>
@@ -1219,7 +1219,7 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                       <span className="text-gray-400 font-medium">CODING questions must include:</span>{" "}
                       <span className="font-mono text-violet-400 font-semibold">"language"</span>
                       <span className="text-gray-500"> — one of: </span>
-                      <span className="font-mono text-gray-400">java &nbsp;|&nbsp; python &nbsp;|&nbsp; cpp &nbsp;|&nbsp; javascript &nbsp;|&nbsp; c</span>
+                      <span className="font-mono text-gray-400">java &nbsp;|&nbsp; python &nbsp;|&nbsp; cpp &nbsp;|&nbsp; javascript &nbsp;|&nbsp; c &nbsp;|&nbsp; csharp</span>
                       <span className="text-gray-600"> &nbsp;&middot;&nbsp; </span>
                       <span className="font-mono text-red-400 font-semibold">"bannedKeywords"</span>
                       <span className="text-gray-500"> — comma-separated (e.g. </span>

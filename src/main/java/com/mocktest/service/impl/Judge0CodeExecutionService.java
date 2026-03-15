@@ -48,7 +48,9 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
             "c",          50,  // C (GCC 9)
             "javascript", 63,  // Node.js (12.14.1)
             "sql",        82,  // SQLite (3.31.1)
-            "embedded c", 50   // Embedded C (mapped to standard C)
+            "embedded c", 50,  // Embedded C (mapped to standard C)
+            "csharp",     51,  // C# (Mono 6.6.0.161)
+            "c#",         51   // C# (Mono 6.6.0.161)
     );
 
     public Judge0CodeExecutionService(

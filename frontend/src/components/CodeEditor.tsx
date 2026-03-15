@@ -13,6 +13,7 @@ const LANGUAGE_MAP: Record<string, string> = {
   java: "java",
   python: "python",
   cpp: "cpp",
+  csharp: "csharp",
 };
 
 export default function CodeEditor({

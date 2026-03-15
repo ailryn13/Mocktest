@@ -42,6 +42,8 @@ const LANG_MAP: Record<string, string> = {
   JavaScript: "javascript",
   SQL: "sql",
   "Embedded C": "embedded c",
+  "C#": "csharp",
+  "c#": "csharp",
 };
 
 const MAX_VIOLATIONS = 3;
