@@ -252,10 +252,15 @@ export default function MediatorDashboard() {
   }
 
   function fmtDate(iso: string) {
-    return new Date(iso).toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    const d = new Date(iso);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = d.getHours();
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const h12 = hours % 12 || 12;
+    return `${day}/${month}/${year}, ${h12}:${mins} ${ampm}`;
   }
 
   if (loading) return null;
@@ -424,7 +429,7 @@ export default function MediatorDashboard() {
                         }`}>{exam.examType || "MCQ"}</span>
                       </p>
                       <p className="text-sm text-gray-400">
-                        {fmtDate(exam.startTime)} to {fmtDate(exam.endTime)} &middot; {exam.durationMinutes} min
+                        Since {fmtDate(exam.startTime)} to {fmtDate(exam.endTime)} &middot; {exam.durationMinutes} min
                       </p>
                     </div>
                     <div className="flex gap-2">

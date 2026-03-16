@@ -79,10 +79,15 @@ export default function StudentDashboard() {
   }
 
   function fmtDate(iso: string) {
-    return new Date(iso).toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    const d = new Date(iso);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = d.getHours();
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const h12 = hours % 12 || 12;
+    return `${day}/${month}/${year}, ${h12}:${mins} ${ampm}`;
   }
 
   if (loading) return null;
@@ -149,7 +154,7 @@ export default function StudentDashboard() {
                           By {exam.mediatorName} &middot; {exam.durationMinutes} min
                         </p>
                         <p className="text-xs text-gray-500">
-                          {fmtDate(exam.startTime)} to {fmtDate(exam.endTime)}
+                          Since {fmtDate(exam.startTime)} to {fmtDate(exam.endTime)}
                         </p>
                       </div>
                       <button
