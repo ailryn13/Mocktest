@@ -79,6 +79,7 @@ export default function ExamDetailPage() {
   const [qLanguage, setQLanguage] = useState("");
   const [qBannedKeywords, setQBannedKeywords] = useState("");
   const [savingQ, setSavingQ] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   // Bulk import state
   const [bulkType, setBulkType] = useState<"MCQ" | "CODING" | "HYBRID">("HYBRID");
@@ -860,48 +861,80 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs text-gray-400 mb-2">
-                          Allowed Languages <span className="text-gray-600">(select one or more — leave all unselected for "Any")</span>
+                          Allowed Languages <span className="text-gray-600">(select multiple from menu)</span>
                         </label>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {["Java", "Python", "C++", "C", "C#", "JavaScript", "SQL"].map((lang) => {
-                            const isSelected = qLanguage.split(',').map(l => l.trim().toLowerCase()).includes(lang.toLowerCase());
-                            return (
-                              <button
-                                key={lang}
-                                type="button"
-                                onClick={() => {
-                                  const currentLangs = qLanguage.split(',').map(l => l.trim()).filter(Boolean);
-                                  const index = currentLangs.findIndex(l => l.toLowerCase() === lang.toLowerCase());
-                                  if (index > -1) {
-                                    currentLangs.splice(index, 1);
-                                  } else {
-                                    currentLangs.push(lang);
-                                  }
-                                  setQLanguage(currentLangs.join(', '));
-                                }}
-                                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border cursor-pointer ${
-                                  isSelected
-                                    ? "bg-purple-600 text-white border-purple-400 shadow-[0_0_8px_rgba(147,51,234,0.3)]"
-                                    : "bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-500 hover:text-gray-300"
-                                }`}
-                              >
-                                {lang}
-                              </button>
-                            );
-                          })}
-                          {qLanguage && (
-                            <button
-                              type="button"
-                              onClick={() => setQLanguage("")}
-                              className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase text-red-400 border border-red-900/50 bg-red-950/20 hover:bg-red-900/30 transition-colors cursor-pointer"
-                            >
-                              Clear All
-                            </button>
+                        
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setLangMenuOpen(!langMenuOpen)}
+                            className="w-full px-3 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm flex items-center justify-between hover:border-gray-500 transition-colors cursor-pointer"
+                          >
+                            <div className="flex flex-wrap gap-1.5 overflow-hidden">
+                              {qLanguage.trim() ? (
+                                qLanguage.split(',').map(l => l.trim()).filter(Boolean).map(lang => (
+                                  <span key={lang} className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-md flex items-center gap-1">
+                                    {lang}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-gray-500 italic text-xs">Any Language Allowed</span>
+                              )}
+                            </div>
+                            <svg className={`w-4 h-4 text-gray-400 transition-transform ${langMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+
+                          {langMenuOpen && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setLangMenuOpen(false)} />
+                              <div className="absolute left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden py-1 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                                {["Java", "Python", "C++", "C", "C#", "JavaScript", "SQL", "Go", "Rust", "Swift", "PHP"].map((lang) => {
+                                  const isSelected = qLanguage.split(',').map(l => l.trim().toLowerCase()).includes(lang.toLowerCase());
+                                  return (
+                                    <button
+                                      key={lang}
+                                      type="button"
+                                      onClick={() => {
+                                        const currentLangs = qLanguage.split(',').map(l => l.trim()).filter(Boolean);
+                                        const index = currentLangs.findIndex(l => l.toLowerCase() === lang.toLowerCase());
+                                        if (index > -1) {
+                                          currentLangs.splice(index, 1);
+                                        } else {
+                                          currentLangs.push(lang);
+                                        }
+                                        setQLanguage(currentLangs.join(', '));
+                                      }}
+                                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-700 flex items-center justify-between transition-colors group cursor-pointer"
+                                    >
+                                      <span className={isSelected ? 'text-purple-400 font-semibold' : 'text-gray-300'}>{lang}</span>
+                                      {isSelected && (
+                                        <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                                {qLanguage && (
+                                  <div className="border-t border-gray-700 mt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setQLanguage("");
+                                        setLangMenuOpen(false);
+                                      }}
+                                      className="w-full px-4 py-2.5 text-left text-xs font-bold text-red-400 hover:bg-red-900/20 transition-colors uppercase tracking-wider cursor-pointer"
+                                    >
+                                      Clear All Selection
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </>
                           )}
                         </div>
-                        {!qLanguage && (
-                          <p className="text-[10px] text-gray-500 italic">No restriction: Students can use any supported language.</p>
-                        )}
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-1">
