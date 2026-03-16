@@ -810,25 +810,26 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                       <label className="block text-xs text-gray-400 mb-1.5">Difficulty</label>
                       <div className="flex gap-2">
                         {[
-                          { val: "EASY",   color: "emerald" },
-                          { val: "MEDIUM", color: "yellow" },
-                          { val: "HARD",   color: "red" }
+                          { val: "EASY",   color: "emerald", emoji: "🟢" },
+                          { val: "MEDIUM", color: "yellow",  emoji: "🟡" },
+                          { val: "HARD",   color: "red",     emoji: "🔴" }
                         ].map((d) => (
                           <button
                             key={d.val}
                             type="button"
                             onClick={() => setQDifficulty(d.val)}
-                            className={`flex-1 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border outline-none cursor-pointer ${
+                            className={`flex-1 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border outline-none cursor-pointer flex items-center justify-center gap-1.5 ${
                               qDifficulty === d.val
-                                ? d.color === "emerald" ? "bg-emerald-500 text-white border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                                  : d.color === "yellow" ? "bg-amber-500 text-white border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
-                                  : "bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.3)]"
-                                : d.color === "emerald" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
-                                  : d.color === "yellow" ? "bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
-                                  : "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
+                                ? d.color === "emerald" ? "bg-emerald-500 text-white border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]"
+                                  : d.color === "yellow" ? "bg-amber-500 text-white border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.4)]"
+                                  : "bg-red-600 text-white border-red-500 shadow-[0_0_12px_rgba(220,38,38,0.4)]"
+                                : d.color === "emerald" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/20"
+                                  : d.color === "yellow" ? "bg-amber-500/10 text-amber-400 border-amber-500/40 hover:bg-amber-500/20"
+                                  : "bg-red-500/10 text-red-400 border-red-500/40 hover:bg-red-500/20"
                             }`}
                           >
-                            {d.val}
+                            <span>{d.emoji}</span>
+                            <span>{d.val}</span>
                           </button>
                         ))}
                       </div>
