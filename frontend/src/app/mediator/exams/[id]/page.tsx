@@ -1065,7 +1065,7 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                       Copy {bulkType === "MCQ" ? "MCQ" : bulkType === "CODING" ? "Coding" : "Hybrid"} Prompt
                     </button>
                     <p className="text-xs text-gray-500 leading-relaxed pt-1">
-                      Copy the <span className="text-gray-300 font-medium">{bulkType === "MCQ" ? "MCQ" : bulkType === "CODING" ? "Coding" : "Hybrid"} prompt</span> → paste into ChatGPT/Claude →<br/>copy the JSON response and paste it below
+                      Copy the <span className="text-gray-300 font-medium">{bulkType === "MCQ" ? "MCQ" : bulkType === "CODING" ? "Coding" : "Hybrid"} prompt</span> to paste into ChatGPT/Claude to<br/>copy the JSON response and paste it below
                     </p>
                   </div>
                   <div>

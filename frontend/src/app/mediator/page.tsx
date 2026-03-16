@@ -310,7 +310,7 @@ export default function MediatorDashboard() {
           </div>
         )}
 
-        {/* â”€â”€ EXAMS TAB â”€â”€ */}
+        {/* -- EXAMS TAB -- */}
         {activeTab === "exams" && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
@@ -378,9 +378,9 @@ export default function MediatorDashboard() {
                     onChange={(e) => setExamType(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="MCQ">MCQ â€“ Multiple Choice Only</option>
-                    <option value="CODING">CODING â€“ Coding Problems Only</option>
-                    <option value="HYBRID">HYBRID â€“ MCQ + Coding (mixed)</option>
+                    <option value="MCQ">MCQ - Multiple Choice Only</option>
+                    <option value="CODING">CODING - Coding Problems Only</option>
+                    <option value="HYBRID">HYBRID - MCQ + Coding (mixed)</option>
                   </select>
                 </div>
                 <div className="flex gap-3">
@@ -424,7 +424,7 @@ export default function MediatorDashboard() {
                         }`}>{exam.examType || "MCQ"}</span>
                       </p>
                       <p className="text-sm text-gray-400">
-                        {fmtDate(exam.startTime)} â†’ {fmtDate(exam.endTime)} &middot; {exam.durationMinutes} min
+                        {fmtDate(exam.startTime)} to {fmtDate(exam.endTime)} &middot; {exam.durationMinutes} min
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -454,7 +454,7 @@ export default function MediatorDashboard() {
           </div>
         )}
 
-        {/* â”€â”€ STUDENTS TAB â”€â”€ */}
+        {/* -- STUDENTS TAB -- */}
         {activeTab === "students" && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">

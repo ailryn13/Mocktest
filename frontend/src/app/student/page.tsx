@@ -149,7 +149,7 @@ export default function StudentDashboard() {
                           By {exam.mediatorName} &middot; {exam.durationMinutes} min
                         </p>
                         <p className="text-xs text-gray-500">
-                          {fmtDate(exam.startTime)} → {fmtDate(exam.endTime)}
+                          {fmtDate(exam.startTime)} to {fmtDate(exam.endTime)}
                         </p>
                       </div>
                       <button
