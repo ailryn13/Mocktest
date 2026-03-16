@@ -41,16 +41,20 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
     private final QuestionRepository questionRepository;
 
     /** Judge0 language IDs: https://ce.judge0.com/languages */
-    private static final Map<String, Integer> LANGUAGE_MAP = Map.of(
-            "java",   62,  // Java (OpenJDK 13)
-            "python", 71,  // Python 3
-            "cpp",    54,  // C++ (GCC 9)
-            "c",          50,  // C (GCC 9)
-            "javascript", 63,  // Node.js (12.14.1)
-            "sql",        82,  // SQLite (3.31.1)
-            "embedded c", 50,  // Embedded C (mapped to standard C)
-            "csharp",     51,  // C# (Mono 6.6.0.161)
-            "c#",         51   // C# (Mono 6.6.0.161)
+    private static final Map<String, Integer> LANGUAGE_MAP = Map.ofEntries(
+            Map.entry("java", 62),
+            Map.entry("python", 71),
+            Map.entry("cpp", 54),
+            Map.entry("c", 50),
+            Map.entry("javascript", 63),
+            Map.entry("sql", 82),
+            Map.entry("embedded c", 50),
+            Map.entry("csharp", 51),
+            Map.entry("c#", 51),
+            Map.entry("go", 60),
+            Map.entry("rust", 73),
+            Map.entry("swift", 83),
+            Map.entry("php", 68)
     );
 
     public Judge0CodeExecutionService(
@@ -208,7 +212,7 @@ public class Judge0CodeExecutionService implements CodeExecutionService {
         Integer id = LANGUAGE_MAP.get(lang);
         if (id == null) {
             throw new BadRequestException(
-                    "Unsupported language: " + language + ". Supported: java, python, cpp, c, javascript, sql, embedded c");
+                    "Unsupported language: " + language + ". Supported: java, python, cpp, c, javascript, sql, c#, go, rust, swift, php");
         }
         return id;
     }
