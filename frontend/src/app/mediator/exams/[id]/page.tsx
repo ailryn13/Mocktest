@@ -807,17 +807,31 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                         className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-xs text-gray-400 mb-1">Difficulty</label>
-                      <select value={qDifficulty} onChange={(e) => setQDifficulty(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm focus:outline-none focus:ring-2 font-semibold transition-all ${
-                          qDifficulty === "HARD" ? "text-red-400 focus:ring-red-500" :
-                          qDifficulty === "MEDIUM" ? "text-yellow-400 focus:ring-yellow-500" :
-                          "text-green-400 focus:ring-green-500"
-                        }`}>
-                        <option value="EASY" className="bg-gray-800 text-green-400 font-semibold">EASY</option>
-                        <option value="MEDIUM" className="bg-gray-800 text-yellow-400 font-semibold">MEDIUM</option>
-                        <option value="HARD" className="bg-gray-800 text-red-400 font-semibold">HARD</option>
-                      </select>
+                      <label className="block text-xs text-gray-400 mb-1.5">Difficulty</label>
+                      <div className="flex gap-2">
+                        {[
+                          { val: "EASY",   color: "emerald" },
+                          { val: "MEDIUM", color: "yellow" },
+                          { val: "HARD",   color: "red" }
+                        ].map((d) => (
+                          <button
+                            key={d.val}
+                            type="button"
+                            onClick={() => setQDifficulty(d.val)}
+                            className={`flex-1 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border outline-none cursor-pointer ${
+                              qDifficulty === d.val
+                                ? d.color === "emerald" ? "bg-emerald-500 text-white border-emerald-400"
+                                  : d.color === "yellow" ? "bg-yellow-500 text-white border-yellow-400"
+                                  : "bg-red-600 text-white border-red-500"
+                                : d.color === "emerald" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                                  : d.color === "yellow" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/20"
+                                  : "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
+                            }`}
+                          >
+                            {d.val}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <div>
