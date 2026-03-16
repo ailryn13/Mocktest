@@ -863,7 +863,7 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                           Allowed Languages <span className="text-gray-600">(select one or more — leave all unselected for "Any")</span>
                         </label>
                         <div className="flex flex-wrap gap-2 mb-2">
-                          {["Java", "Python", "C++", "C", "C#", "JavaScript"].map((lang) => {
+                          {["Java", "Python", "C++", "C", "C#", "JavaScript", "SQL"].map((lang) => {
                             const isSelected = qLanguage.split(',').map(l => l.trim().toLowerCase()).includes(lang.toLowerCase());
                             return (
                               <button
