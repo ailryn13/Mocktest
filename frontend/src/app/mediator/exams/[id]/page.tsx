@@ -809,10 +809,14 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                     <div className="col-span-2">
                       <label className="block text-xs text-gray-400 mb-1">Difficulty</label>
                       <select value={qDifficulty} onChange={(e) => setQDifficulty(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="EASY">EASY</option>
-                        <option value="MEDIUM">MEDIUM</option>
-                        <option value="HARD">HARD</option>
+                        className={`w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm focus:outline-none focus:ring-2 font-semibold transition-all ${
+                          qDifficulty === "HARD" ? "text-red-400 focus:ring-red-500" :
+                          qDifficulty === "MEDIUM" ? "text-yellow-400 focus:ring-yellow-500" :
+                          "text-green-400 focus:ring-green-500"
+                        }`}>
+                        <option value="EASY" className="bg-gray-800 text-green-400 font-semibold">EASY</option>
+                        <option value="MEDIUM" className="bg-gray-800 text-yellow-400 font-semibold">MEDIUM</option>
+                        <option value="HARD" className="bg-gray-800 text-red-400 font-semibold">HARD</option>
                       </select>
                     </div>
                   </div>
@@ -997,8 +1001,12 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                                 <td className="px-3 py-2 max-w-xs truncate text-gray-200">{r.content}</td>
                                 <td className="px-3 py-2 text-gray-300">{r.marks}</td>
                                 <td className="px-3 py-2">
-                                  <span className={`text-xs font-medium ${
-                                    r.difficulty === "HARD" ? "text-red-400" : r.difficulty === "EASY" ? "text-green-400" : "text-yellow-400"
+                                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                    r.difficulty === "HARD"
+                                      ? "bg-red-500/20 text-red-400 border border-red-500/50"
+                                      : r.difficulty === "EASY"
+                                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
+                                      : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50"
                                   }`}>{r.difficulty}</span>
                                 </td>
                                 <td className="px-3 py-2 text-gray-400">{r.language ?? <span className="text-gray-600">—</span>}</td>
@@ -1265,8 +1273,12 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                               <td className="px-3 py-2 max-w-xs truncate text-gray-200">{r.content}</td>
                               <td className="px-3 py-2 text-gray-300">{r.marks}</td>
                               <td className="px-3 py-2">
-                                <span className={`text-xs font-medium ${
-                                  r.difficulty === "HARD" ? "text-red-400" : r.difficulty === "EASY" ? "text-green-400" : "text-yellow-400"
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                  r.difficulty === "HARD"
+                                    ? "bg-red-500/20 text-red-400 border border-red-500/50"
+                                    : r.difficulty === "EASY"
+                                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
+                                    : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50"
                                 }`}>{r.difficulty}</span>
                               </td>
                               <td className="px-3 py-2 text-gray-400">{r.language ?? <span className="text-gray-600">—</span>}</td>
@@ -1301,10 +1313,10 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                             <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                               q.type === "CODING" ? "bg-purple-900/60 text-purple-300" : "bg-blue-900/60 text-blue-300"
                             }`}>{q.type}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                              q.difficulty === "HARD" ? "bg-red-900/50 text-red-300" :
-                              q.difficulty === "MEDIUM" ? "bg-yellow-900/50 text-yellow-300" :
-                              "bg-green-900/50 text-green-300"
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              q.difficulty === "HARD" ? "bg-red-500/20 text-red-400 border border-red-500/50" :
+                              q.difficulty === "MEDIUM" ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50" :
+                              "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
                             }`}>{q.difficulty ?? "MEDIUM"}</span>
                             <span className="text-xs text-gray-500">{q.marks ?? 1} mark{(q.marks ?? 1) !== 1 ? "s" : ""}</span>
                           </div>
