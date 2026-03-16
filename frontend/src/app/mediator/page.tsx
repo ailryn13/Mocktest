@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, FormEvent } from "react";
+import BulkInviteModal from "@/components/BulkInviteModal";
 
 interface Department {
   id: number;
@@ -70,6 +71,7 @@ export default function MediatorDashboard() {
   const [studentSaving, setStudentSaving] = useState(false);
   const [studentError, setStudentError] = useState("");
   const [studentSuccess, setStudentSuccess] = useState("");
+  const [showBulkInvite, setShowBulkInvite] = useState(false);
 
   // Search & Reset
   const [studentSearch, setStudentSearch] = useState("");
@@ -464,12 +466,20 @@ export default function MediatorDashboard() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Students</h2>
-              <button
-                onClick={() => { setShowStudentForm(true); setStudentError(""); setStudentSuccess(""); }}
-                className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-sm font-medium transition-colors cursor-pointer"
-              >
-                + Register Student
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowBulkInvite(true); setStudentError(""); setStudentSuccess(""); }}
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium transition-colors cursor-pointer"
+                >
+                  📤 Bulk Invite
+                </button>
+                <button
+                  onClick={() => { setShowStudentForm(true); setStudentError(""); setStudentSuccess(""); }}
+                  className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-sm font-medium transition-colors cursor-pointer"
+                >
+                  + Register Student
+                </button>
+              </div>
             </div>
 
             {/* Success banner */}
@@ -651,6 +661,12 @@ export default function MediatorDashboard() {
           </div>
         </div>
       )}
+      <BulkInviteModal
+        isOpen={showBulkInvite}
+        onClose={() => setShowBulkInvite(false)}
+        onSuccess={(msg) => { setStudentSuccess(msg); setShowBulkInvite(false); }}
+        onRefresh={loadStudents}
+      />
       </div>
     </div>
   );
