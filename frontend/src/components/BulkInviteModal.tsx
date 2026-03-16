@@ -37,7 +37,20 @@ export default function BulkInviteModal({ isOpen, onClose, onSuccess, onRefresh 
       // apiFetch doesn't handle FormData automatically with default headers
       // We need to use a specialized fetch or update apiFetch
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/mediator/bulk-invite`, {
+      const apiBase = getApiBase(); // Assuming getApiBase is defined elsewhere or imported
+      
+      // New token validation step as per the instruction's intent
+      if (token) {
+        const validateRes = await fetch(`${apiBase}/auth/validate-invite?token=${token}`);
+        if (!validateRes.ok) {
+          const validationErr = await validateRes.json();
+          throw new Error(validationErr.message || "Token validation failed. Please log in again.");
+        }
+      } else {
+        throw new Error("Authentication token not found. Please log in.");
+      }
+
+      const res = await fetch(`${apiBase}/mediator/bulk-invite`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

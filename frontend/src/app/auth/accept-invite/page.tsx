@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
+import { getApiBase } from "@/lib/api";
 
 function AcceptInviteContent() {
   const searchParams = useSearchParams();
@@ -28,7 +29,8 @@ function AcceptInviteContent() {
 
   async function validateToken() {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/auth/validate-invite?token=${token}`);
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/auth/validate-invite?token=${token}`);
       if (!res.ok) throw new Error("Invalid or expired invitation link.");
       const data = await res.json();
       setEmail(data.email);
@@ -50,7 +52,8 @@ function AcceptInviteContent() {
     setError("");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/auth/accept-invite`, {
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/auth/accept-invite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),

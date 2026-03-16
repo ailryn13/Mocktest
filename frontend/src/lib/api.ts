@@ -1,14 +1,24 @@
-function getApiBase(): string {
+export function getApiBase(): string {
   const configuredBase = process.env.NEXT_PUBLIC_API_URL;
-  if (configuredBase && configuredBase.trim().length > 0) {
-    return configuredBase.trim();
-  }
 
+  // Browser-side logic to prevent Mixed Content errors
   if (typeof window !== "undefined") {
+    const isHttps = window.location.protocol === "https:";
+    
+    // If the site is HTTPS, force relative path /api to ensure the request 
+    // goes through Nginx via HTTPS, avoiding Mixed Content errors.
+    if (isHttps) {
+      return "/api";
+    }
+    
+    if (configuredBase && configuredBase.trim().length > 0) {
+      return configuredBase.trim();
+    }
     return "/api";
   }
 
-  return "http://backend:8080/api";
+  // Server-side (during SSR or build)
+  return configuredBase || "http://backend:8080/api";
 }
 
 const API_BASE = getApiBase();
