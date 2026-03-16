@@ -820,11 +820,11 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                             onClick={() => setQDifficulty(d.val)}
                             className={`flex-1 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border outline-none cursor-pointer ${
                               qDifficulty === d.val
-                                ? d.color === "emerald" ? "bg-emerald-500 text-white border-emerald-400"
-                                  : d.color === "yellow" ? "bg-yellow-500 text-white border-yellow-400"
-                                  : "bg-red-600 text-white border-red-500"
+                                ? d.color === "emerald" ? "bg-emerald-500 text-white border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                                  : d.color === "yellow" ? "bg-amber-500 text-white border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                                  : "bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.3)]"
                                 : d.color === "emerald" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
-                                  : d.color === "yellow" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/20"
+                                  : d.color === "yellow" ? "bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
                                   : "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
                             }`}
                           >
