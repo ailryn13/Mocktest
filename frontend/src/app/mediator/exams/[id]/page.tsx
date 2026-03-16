@@ -859,23 +859,48 @@ MCQ questions must NOT include an allowedLanguages field. CODING questions must 
                   {qType === "CODING" && (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">
-                          Allowed Languages{" "}
-                          <span className="text-gray-600">(comma-separated, e.g. <span className="font-mono">Java, Python, C++</span> — leave blank for any)</span>
+                        <label className="block text-xs text-gray-400 mb-2">
+                          Allowed Languages <span className="text-gray-600">(select one or more — leave all unselected for "Any")</span>
                         </label>
-                        <input
-                          type="text"
-                          value={qLanguage}
-                          onChange={(e) => setQLanguage(e.target.value)}
-                          placeholder="e.g. Java, Python, C++, C#"
-                          className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                        {qLanguage.trim() && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {qLanguage.split(',').map(l => l.trim()).filter(Boolean).map(lang => (
-                              <span key={lang} className="bg-purple-700/60 text-purple-200 text-xs px-2 py-0.5 rounded-full">{lang}</span>
-                            ))}
-                          </div>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {["Java", "Python", "C++", "C", "C#", "JavaScript"].map((lang) => {
+                            const isSelected = qLanguage.split(',').map(l => l.trim().toLowerCase()).includes(lang.toLowerCase());
+                            return (
+                              <button
+                                key={lang}
+                                type="button"
+                                onClick={() => {
+                                  const currentLangs = qLanguage.split(',').map(l => l.trim()).filter(Boolean);
+                                  const index = currentLangs.findIndex(l => l.toLowerCase() === lang.toLowerCase());
+                                  if (index > -1) {
+                                    currentLangs.splice(index, 1);
+                                  } else {
+                                    currentLangs.push(lang);
+                                  }
+                                  setQLanguage(currentLangs.join(', '));
+                                }}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border cursor-pointer ${
+                                  isSelected
+                                    ? "bg-purple-600 text-white border-purple-400 shadow-[0_0_8px_rgba(147,51,234,0.3)]"
+                                    : "bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-500 hover:text-gray-300"
+                                }`}
+                              >
+                                {lang}
+                              </button>
+                            );
+                          })}
+                          {qLanguage && (
+                            <button
+                              type="button"
+                              onClick={() => setQLanguage("")}
+                              className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase text-red-400 border border-red-900/50 bg-red-950/20 hover:bg-red-900/30 transition-colors cursor-pointer"
+                            >
+                              Clear All
+                            </button>
+                          )}
+                        </div>
+                        {!qLanguage && (
+                          <p className="text-[10px] text-gray-500 italic">No restriction: Students can use any supported language.</p>
                         )}
                       </div>
                       <div>
