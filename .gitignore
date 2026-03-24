@@ -56,3 +56,7 @@ send_ssh_key.ps1
 .gcloud/
 *.tfstate
 *.tfstate.backup
+
+# Big Backup Files
+*.zip
+*.txt

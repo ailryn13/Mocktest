@@ -1,0 +1,503 @@
+"use client";
+
+import { useAuth } from "@/context/AuthContext";
+import { apiFetch } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, FormEvent } from "react";
+
+interface Department {
+  id: number;
+  name: string;
+}
+
+interface Mediator {
+  id: number;
+  name: string;
+  email: string;
+  departmentName: string;
+  departmentId: number;
+}
+
+export default function AdminDashboard() {
+  const { user, loading, logout } = useAuth();
+  const router = useRouter();
+
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [fetching, setFetching] = useState(true);
+
+  // Department form state
+  const [deptName, setDeptName] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  // Mediator registration / edit form state
+  const [mediators, setMediators] = useState<Mediator[]>([]);
+  const [fetchingMediators, setFetchingMediators] = useState(true);
+  const [medName, setMedName] = useState("");
+  const [medEmail, setMedEmail] = useState("");
+  const [medPassword, setMedPassword] = useState("");
+  const [medDeptId, setMedDeptId] = useState<number | "">("");
+  const [editingMediatorId, setEditingMediatorId] = useState<number | null>(null);
+  const [registeringSaving, setRegisteringSaving] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState("");
+
+  // Search state
+  const [medSearch, setMedSearch] = useState("");
+
+  // Auth guard
+  useEffect(() => {
+    if (!loading) {
+      if (!user || user.role !== "ADMIN") {
+        router.replace("/login");
+      }
+    }
+  }, [user, loading, router]);
+
+  // Fetch initial data
+  useEffect(() => {
+    if (user && user.role === "ADMIN") {
+      loadDepartments();
+      loadMediators();
+    }
+  }, [user]);
+
+  async function loadMediators() {
+    setFetchingMediators(true);
+    try {
+      const data = await apiFetch<Mediator[]>("/admin/mediators");
+      setMediators(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load mediators");
+    } finally {
+      setFetchingMediators(false);
+    }
+  }
+
+  async function loadDepartments() {
+    setFetching(true);
+    try {
+      const data = await apiFetch<Department[]>("/admin/departments");
+      setDepartments(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load departments");
+    } finally {
+      setFetching(false);
+    }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    try {
+      if (editingId !== null) {
+        // Update
+        const updated = await apiFetch<Department>(
+          `/admin/departments/${editingId}`,
+          { method: "PUT", body: JSON.stringify({ name: deptName }) }
+        );
+        setDepartments((prev) =>
+          prev.map((d) => (d.id === editingId ? updated : d))
+        );
+      } else {
+        // Create
+        const created = await apiFetch<Department>("/admin/departments", {
+          method: "POST",
+          body: JSON.stringify({ name: deptName }),
+        });
+        setDepartments((prev) => [...prev, created]);
+      }
+      setDeptName("");
+      setEditingId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm("Delete this department?")) return;
+    setError("");
+    try {
+      await apiFetch(`/admin/departments/${id}`, { method: "DELETE" });
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
+      if (editingId === id) {
+        setEditingId(null);
+        setDeptName("");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    }
+  }
+
+  function startEdit(dept: Department) {
+    setEditingId(dept.id);
+    setDeptName(dept.name);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setDeptName("");
+  }
+
+  async function handleRegisterMediator(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setRegisterSuccess("");
+    setRegisteringSaving(true);
+    try {
+      if (editingMediatorId !== null) {
+        // Update
+        const updated = await apiFetch<Mediator>(`/admin/mediators/${editingMediatorId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name: medName,
+            email: medEmail,
+            password: medPassword || undefined, // Send only if changed
+            role: "MEDIATOR",
+            departmentId: user?.departmentId || medDeptId,
+          }),
+        });
+        setMediators((prev) =>
+          prev.map((m) => (m.id === editingMediatorId ? updated : m))
+        );
+        setRegisterSuccess("Mediator updated successfully");
+        cancelEditMediator();
+      } else {
+        // Create
+        await apiFetch<string>("/admin/register-mediator", {
+          method: "POST",
+          body: JSON.stringify({
+            name: medName,
+            email: medEmail,
+            password: medPassword,
+            role: "MEDIATOR",
+            departmentId: medDeptId || user?.departmentId,
+          }),
+        });
+        setRegisterSuccess("Mediator registered successfully");
+        loadMediators(); // Refresh list
+        setMedName("");
+        setMedEmail("");
+        setMedPassword("");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Operation failed");
+    } finally {
+      setRegisteringSaving(false);
+    }
+  }
+
+  async function handleDeleteMediator(id: number) {
+    if (!confirm("Delete this mediator account? All their exams will remain but they won't be able to log in.")) return;
+    setError("");
+    try {
+      await apiFetch(`/admin/mediators/${id}`, { method: "DELETE" });
+      setMediators((prev) => prev.filter((m) => m.id !== id));
+      if (editingMediatorId === id) cancelEditMediator();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    }
+  }
+
+  function startEditMediator(m: Mediator) {
+    setEditingMediatorId(m.id);
+    setMedName(m.name);
+    setMedEmail(m.email);
+    setMedPassword(""); // Don't show hashed password
+    setMedDeptId(m.departmentId);
+    setRegisterSuccess("");
+    setError("");
+  }
+  function cancelEditMediator() {
+    setEditingMediatorId(null);
+    setMedName("");
+    setMedEmail("");
+    setMedPassword("");
+    setMedDeptId("");
+  }
+
+  const filteredMediators = mediators.filter(m => 
+    m.name.toLowerCase().includes(medSearch.toLowerCase()) ||
+    m.email.toLowerCase().includes(medSearch.toLowerCase()) ||
+    m.departmentName.toLowerCase().includes(medSearch.toLowerCase())
+  );
+
+  if (loading) return null;
+  if (!user || user.role !== "ADMIN") return null;
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            <div className="flex flex-col">
+              <p className="text-gray-400">Welcome, {user.name}</p>
+              {user.departmentName && (
+                <p className="text-blue-400 text-sm font-semibold">College: {user.departmentName}</p>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-sm font-medium transition-colors cursor-pointer"
+          >
+            Sign Out
+          </button>
+        </div>
+
+        {/* Error banner */}
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-900/50 border border-red-700 text-red-300 text-sm">
+            {error}
+          </div>
+        )}
+        {registerSuccess && (
+          <div className="mb-4 p-3 rounded-lg bg-green-900/50 border border-green-700 text-green-300 text-sm">
+            {registerSuccess}
+          </div>
+        )}
+
+        {/* Department Management */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-4">Manage Departments</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Add units like "Computer Science" or "Physics" under your college.
+          </p>
+
+          {/* Quick Add Suggestions */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <span className="text-xs text-gray-400 w-full mb-1">Common Suggestion:</span>
+            {[
+              "Computer Science and Engineering",
+              "Information Technology",
+              "Electronics and Communication Engineering",
+              "Electrical and Electronics Engineering",
+              "Mechanical Engineering",
+              "Civil Engineering",
+              "Artificial Intelligence and Data Science"
+            ].map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => setDeptName(name)}
+                className="px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-[10px] text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer"
+              >
+                + {name}
+              </button>
+            ))}
+          </div>
+
+          {/* Add / Edit form */}
+          <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
+            <input
+              type="text"
+              required
+              value={deptName}
+              onChange={(e) => setDeptName(e.target.value)}
+              placeholder="Department name"
+              className="flex-1 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 font-medium text-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              {saving
+                ? "Saving..."
+                : editingId !== null
+                ? "Update"
+                : "Add"}
+            </button>
+            {editingId !== null && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-medium text-sm transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            )}
+          </form>
+
+          {/* Department list */}
+          {fetching ? (
+            <p className="text-gray-500 text-sm">Loading...</p>
+          ) : departments.filter(d => d.name !== user.departmentName).length === 0 ? (
+            <p className="text-gray-500 text-sm">No sub-departments added yet.</p>
+          ) : (
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-800">
+                  <th className="pb-2 text-gray-400 text-sm font-medium">ID</th>
+                  <th className="pb-2 text-gray-400 text-sm font-medium">Name</th>
+                  <th className="pb-2 text-gray-400 text-sm font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {departments
+                  .filter(dept => dept.name !== user.departmentName)
+                  .map((dept, index) => (
+                  <tr key={dept.id} className="border-b border-gray-800/50">
+                    <td className="py-3 text-gray-300">{index + 1}</td>
+                    <td className="py-3">{dept.name}</td>
+                    <td className="py-3 text-right space-x-2">
+                      <button
+                        onClick={() => startEdit(dept)}
+                        className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs font-medium transition-colors cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(dept.id)}
+                        className="px-3 py-1 rounded bg-red-700 hover:bg-red-600 text-xs font-medium transition-colors cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Mediator Registration / Edit */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{editingMediatorId ? "Edit Mediator" : "Register Mediator"}</h2>
+            {editingMediatorId && (
+              <button
+                onClick={cancelEditMediator}
+                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+               >
+                Cancel Edit
+              </button>
+            )}
+          </div>
+
+          <p className="text-xs text-gray-500 mb-4">
+            Mediators will be registered for <strong>{user.departmentName || "your college"}</strong>.
+          </p>
+
+          <form onSubmit={handleRegisterMediator} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              required
+              value={medName}
+              onChange={(e) => setMedName(e.target.value)}
+              placeholder="Full Name"
+              className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <input
+              type="email"
+              required
+              value={medEmail}
+              onChange={(e) => setMedEmail(e.target.value)}
+              placeholder="Email"
+              className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <input
+              type="password"
+              required={!editingMediatorId}
+              value={medPassword}
+              onChange={(e) => setMedPassword(e.target.value)}
+              placeholder={editingMediatorId ? "New Password (optional)" : "Password"}
+              className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <select
+              required
+              value={medDeptId}
+              onChange={(e) => setMedDeptId(e.target.value ? Number(e.target.value) : "")}
+              className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">{departments.filter(d => d.id !== user.departmentId).length > 0 ? "Select Department" : "No Departments Added"}</option>
+              {departments
+                .filter(d => d.id !== user.departmentId)
+                .map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+            <div className="md:col-span-2">
+              <button
+                type="submit"
+                disabled={registeringSaving}
+                className={`px-6 py-2 rounded-lg ${editingMediatorId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'} disabled:opacity-50 font-medium text-sm transition-colors cursor-pointer disabled:cursor-not-allowed`}
+              >
+                {registeringSaving ? "Saving..." : editingMediatorId ? "Update Mediator" : "Register Mediator"}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Mediators List */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
+          <h2 className="text-lg font-semibold mb-2">Mediators</h2>
+          
+          {/* Search bar */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search mediators by name, email or department..."
+              value={medSearch}
+              onChange={(e) => setMedSearch(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+          </div>
+
+          {fetchingMediators ? (
+            <p className="text-gray-500 text-sm">Loading mediators...</p>
+          ) : filteredMediators.length === 0 ? (
+            <p className="text-gray-500 text-sm">
+              {medSearch ? "No mediators match your search." : "No mediators registered."}
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="pb-2 text-gray-400 text-sm font-medium">Name</th>
+                    <th className="pb-2 text-gray-400 text-sm font-medium">Email</th>
+                    <th className="pb-2 text-gray-400 text-sm font-medium">Department</th>
+                    <th className="pb-2 text-gray-400 text-sm font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMediators.map((m) => (
+                    <tr key={m.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+                      <td className="py-3 text-gray-200">{m.name}</td>
+                      <td className="py-3 text-gray-400 text-sm">{m.email}</td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-900/40 text-blue-300 border border-blue-800/50">
+                          {m.departmentName}
+                        </span>
+                      </td>
+                      <td className="py-3 text-right space-x-2">
+                        <button
+                          onClick={() => startEditMediator(m)}
+                          className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs font-medium transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMediator(m.id)}
+                          className="px-3 py-1 rounded bg-red-900/40 hover:bg-red-900/60 text-red-400 text-xs font-medium transition-colors cursor-pointer border border-red-800/50"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

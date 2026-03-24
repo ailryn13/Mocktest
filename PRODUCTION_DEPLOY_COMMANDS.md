@@ -1,7 +1,7 @@
 # Production Deployment Instructions
 
 ## Server Details
-- **IP**: 52.66.218.95
+- **IP**: 3.222.6.232
 - **Domain**: mock-test.duckdns.org
 - **User**: ubuntu
 
@@ -9,7 +9,7 @@
 
 ### 1. SSH to Production Server
 ```bash
-ssh ubuntu@52.66.218.95
+ssh ubuntu@3.222.6.232
 ```
 
 ### 2. Navigate to Application Directory

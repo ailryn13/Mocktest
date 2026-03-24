@@ -22,7 +22,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final UserRepository userRepository;
 
     public DepartmentServiceImpl(DepartmentRepository departmentRepository,
-                                 UserRepository userRepository) {
+            UserRepository userRepository) {
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
     }
@@ -37,7 +37,8 @@ public class DepartmentServiceImpl implements DepartmentService {
         Department dept = new Department(request.getName());
 
         // For Admins, automatically link to their college
-        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+                .getName();
         com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
         if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
             dept.setParent(currentUser.getDepartment());
@@ -50,10 +51,12 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     @Transactional(readOnly = true)
     public List<DepartmentResponse> getAll() {
-        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+                .getName();
         com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
 
-        if (currentUser == null) return List.of();
+        if (currentUser == null)
+            return List.of();
 
         // 1. If Admin, show only their sub-departments (the departments they created)
         if (currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
@@ -70,9 +73,10 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (currentUser.getRole() == com.mocktest.models.enums.Role.MEDIATOR) {
             if (currentUser.getDepartment() != null) {
                 Department myDept = currentUser.getDepartment();
-                // If the mediator is in a sub-unit, show siblings (all units under same college)
+                // If the mediator is in a sub-unit, show siblings (all units under same
+                // college)
                 Long collegeId = (myDept.getParent() != null) ? myDept.getParent().getId() : myDept.getId();
-                
+
                 return departmentRepository.findByParentId(collegeId)
                         .stream()
                         .map(this::toResponse)
@@ -127,12 +131,15 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     private void checkAdminAccess(Department targetDept) {
-        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+                .getName();
         com.mocktest.models.User currentUser = userRepository.findByEmail(email).orElse(null);
 
         if (currentUser != null && currentUser.getRole() == com.mocktest.models.enums.Role.ADMIN) {
-            if (targetDept.getParent() == null || !targetDept.getParent().getId().equals(currentUser.getDepartment().getId())) {
-                throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this department");
+            if (targetDept.getParent() == null
+                    || !targetDept.getParent().getId().equals(currentUser.getDepartment().getId())) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "You do not have permission to access this department");
             }
         }
     }

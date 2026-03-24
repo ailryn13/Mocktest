@@ -1,236 +1,177 @@
 package com.mocktest.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.*;
 import com.mocktest.dto.code.CodeExecutionResult;
-import com.mocktest.exception.BadRequestException;
 import com.mocktest.service.CodeExecutionService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import com.mocktest.repositories.QuestionRepository;
 import com.mocktest.models.Question;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.http.*;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-/**
- * Judge0 CE (Community Edition) integration.
- * <p>
- * Uses the synchronous submission endpoint:
- * {@code POST /submissions?base64_encoded=true&wait=true}
- * <p>
- * Configure via {@code app.judge0.*} properties.
- */
 @Service
 public class Judge0CodeExecutionService implements CodeExecutionService {
-
     private static final Logger log = LoggerFactory.getLogger(Judge0CodeExecutionService.class);
-
-    private final String apiUrl;
-    private final String apiKey;     // optional – for RapidAPI hosted Judge0
+    private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(60)).build();
     private final ObjectMapper mapper = new ObjectMapper();
-    private final HttpClient httpClient;
-    private final QuestionRepository questionRepository;
+    private final QuestionRepository qRepo;
 
-    /** Judge0 language IDs: https://ce.judge0.com/languages */
-    private static final Map<String, Integer> LANGUAGE_MAP = Map.ofEntries(
-            Map.entry("java", 62),
-            Map.entry("python", 71),
-            Map.entry("cpp", 54),
-            Map.entry("c", 50),
-            Map.entry("javascript", 63),
-            Map.entry("sql", 82),
-            Map.entry("embedded c", 50),
-            Map.entry("csharp", 51),
-            Map.entry("c#", 51),
-            Map.entry("go", 60),
-            Map.entry("rust", 73),
-            Map.entry("swift", 83),
-            Map.entry("php", 68)
-    );
+    @Value("${app.judge0.api-url:http://judge0-server:2358}") private String apiUrl;
 
-    public Judge0CodeExecutionService(
-            @Value("${app.judge0.api-url:https://judge0-ce.p.rapidapi.com}") String apiUrl,
-            @Value("${app.judge0.api-key:}") String apiKey,
-            QuestionRepository questionRepository) {
-        this.apiUrl = apiUrl;
-        this.apiKey = apiKey;
-        this.questionRepository = questionRepository;
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-    }
+    public Judge0CodeExecutionService(QuestionRepository q) { this.qRepo = q; }
 
-    @Override
-    public CodeExecutionResult execute(String sourceCode, String language, String stdin, Long questionId) {
-        int langId = languageId(language);
-        String finalStdin = stdin;
-        String expectedOutput = null;
+    public CodeExecutionResult execute(String source, String lang, String stdin, Long qid) {
+        try {
+            String expected = "";
+            String finalInput = (stdin != null && !stdin.trim().isEmpty()) ? stdin : "";
 
-        // If questionId is provided, pull the first hidden test case for validation
-        if (questionId != null) {
-            Question q = questionRepository.findById(questionId).orElse(null);
-            if (q != null && q.getTestCases() != null) {
-                try {
-                    List<Map<String, String>> testCases = mapper.readValue(
-                            q.getTestCases(), new com.fasterxml.jackson.core.type.TypeReference<>() {});
-                    if (!testCases.isEmpty()) {
-                        Map<String, String> first = testCases.get(0);
-                        if (finalStdin == null || finalStdin.isBlank()) {
-                            finalStdin = first.getOrDefault("input", "");
+            // 1. Fetch Question context for input/expected output if not provided
+            if (qid != null) {
+                Question q = qRepo.findById(qid).orElse(null);
+                if (q != null && q.getTestCases() != null) {
+                    JsonNode node = mapper.readTree(q.getTestCases());
+                    if (node.isArray() && node.size() > 0) {
+                        JsonNode firstCase = node.get(0);
+                        // Try both common property names for expected output
+                        expected = firstCase.path("expected").asText("");
+                        if (expected.isEmpty()) expected = firstCase.path("expectedOutput").asText("");
+                        
+                        // If student provided NO custom input, use the sample input/stdin from the question
+                        if (finalInput.isEmpty()) {
+                            finalInput = firstCase.path("input").asText("");
+                            if (finalInput.isEmpty()) finalInput = firstCase.path("stdin").asText("");
                         }
-                        expectedOutput = first.containsKey("expectedOutput") 
-                            ? first.get("expectedOutput") 
-                            : first.getOrDefault("expected", "");
-                        if (expectedOutput != null) expectedOutput = expectedOutput.trim();
                     }
-                } catch (Exception e) {
-                    log.warn("[DEBUG] Failed to parse test cases for question {}: {}", questionId, e.getMessage());
                 }
             }
-        }
 
-        try {
-            // Build the JSON body with base64-encoded fields
-            String body = mapper.writeValueAsString(Map.of(
-                    "source_code", b64Encode(sourceCode),
-                    "language_id", langId,
-                    "stdin", b64Encode(finalStdin != null ? finalStdin : "")
-            ));
-
-            // Increase wait timeout for Java compilation
-            String judgeUrl = apiUrl + "/submissions?base64_encoded=true&wait=true&fields=*";
-            HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(judgeUrl))
-                    .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(30))
-                    .POST(HttpRequest.BodyPublishers.ofString(body));
-
-            // If using RapidAPI hosted Judge0, attach the API key headers
-            if (apiKey != null && !apiKey.isBlank()) {
-                reqBuilder.header("X-RapidAPI-Key", apiKey);
-                reqBuilder.header("X-RapidAPI-Host", URI.create(apiUrl).getHost());
+            // 2. Prepare Request body for Judge0
+            Map<String, Object> body = new HashMap<>();
+            body.put("source_code", Base64.getEncoder().encodeToString(source.getBytes()));
+            body.put("language_id", languageId(lang));
+            body.put("stdin", Base64.getEncoder().encodeToString(finalInput.getBytes()));
+            // Java 21+ on Judge0 needs Serial GC to run reliably in low-memory environments.
+            // We use -J to pass options to the compiler process (javac).
+            // Default MAX_MEMORY_LIMIT on most Judge0 instances is 512000 (500MB).
+            int requestedMemoryLimit = "java".equalsIgnoreCase(lang) ? 512000 : 256000; 
+            body.put("memory_limit", requestedMemoryLimit);
+            if ("java".equalsIgnoreCase(lang)) {
+                // Keep JVM heap at 384MB to allow some overhead within the 500MB (512000KB) limit.
+                body.put("compiler_options", "-J-Xmx384m -J-Xms128m -J-XX:+UseSerialGC");
             }
+            body.put("stack_limit", 64000);
+            body.put("cpu_time_limit", 15.0);
+            body.put("wall_time_limit", 20.0); 
 
-            HttpResponse<String> response = httpClient.send(
-                    reqBuilder.build(),
-                    HttpResponse.BodyHandlers.ofString());
-            
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl + "/submissions?base64_encoded=true&wait=true"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                .build();
+
+            // 3. Process Result
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             log.info("[DEBUG] Judge0 HTTP {}: {}", response.statusCode(), response.body());
-
-            JsonNode json = mapper.readTree(response.body());
-
-            CodeExecutionResult result = new CodeExecutionResult();
-
-            // Status
-            JsonNode status = json.get("status");
-            if (status != null) {
-                result.setStatusId(status.get("id").asInt());
-                result.setStatusDescription(status.get("description").asText());
-            }
-
-            // Stdout
-            result.setActualOutput(b64Decode(json, "stdout"));
-
-            // Stderr
-            result.setStderr(b64Decode(json, "stderr"));
-
-            // Compile output (for compile errors)
-            result.setCompileOutput(b64Decode(json, "compile_output"));
-
-            // Execution time
-            JsonNode timeNode = json.get("time");
-            if (timeNode != null && !timeNode.isNull()) {
-                result.setExecutionTimeMs(timeNode.asDouble() * 1000); // seconds -> ms
-            }
-
-            // Normalize actual output
-            String actual = result.getActualOutput() != null ? result.getActualOutput().replace("\r\n", "\n").trim() : "";
-            result.setActualOutput(actual);
-
-            // Comparison logic
-            if (expectedOutput != null) {
-                boolean isAccepted = result.getStatusId() == 3;
-                
-                // Normalize newlines and trim for robust comparison
-                String normalizedExpected = expectedOutput.replace("\r\n", "\n").trim();
-                
-                // Strict comparison (case-sensitive) as requested
-                boolean matches = normalizedExpected.isEmpty() || actual.equals(normalizedExpected);
-                result.setPassed(isAccepted && matches);
-
-                // Provide clear mismatch reason only if we had an expectation
-                if (isAccepted && !matches && !normalizedExpected.isEmpty()) {
-                    result.setStatusDescription("Wrong Answer: Expected '" + normalizedExpected + "' but got '" + actual + "'");
-                }
-                
-                // Ensure DTO has clean values for the frontend
-                result.setExpectedOutput(normalizedExpected);
-                result.setTestInput(finalStdin);
-                
-                log.info("[DEBUG] Comparison - Passed: {}, Accepted: {}, Matches: {}", result.isPassed(), isAccepted, matches);
-            } else {
-                // If no test cases defined, just check if the code ran successfully (Accepted = 3)
-                boolean isAccepted = result.getStatusId() == 3;
-                result.setPassed(isAccepted);
-                result.setActualOutput(actual);
-                result.setTestInput(finalStdin != null ? finalStdin : "");
-                log.info("[DEBUG] No test cases. Passed: {} (Accepted: {})", result.isPassed(), isAccepted);
-            }
-
-            return result;
-
-        } catch (BadRequestException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[DEBUG] Judge0 execution failed. Source: {}, Lang: {}, API: {}", sourceCode, language, apiUrl, e);
-            CodeExecutionResult errorResult = new CodeExecutionResult();
-            errorResult.setStatusId(-1);
+            JsonNode resultNode = mapper.readTree(response.body());
             
-            // Build a better error message avoiding "null"
-            String errMsg = e.getMessage();
-            if (errMsg == null) {
-                errMsg = e.getClass().getSimpleName() + " (NullPointerException)";
+            CodeExecutionResult res = new CodeExecutionResult();
+
+            if (response.statusCode() >= 400) {
+                res.setStatusId(response.statusCode());
+                String apiError = resultNode.path("message").asText("");
+                if (apiError.isEmpty()) apiError = resultNode.toString();
+                res.setStatusDescription("Judge0 API Error: " + apiError);
+                res.setActualOutput("");
+                res.setStderr(apiError);
+                res.setCompileOutput("");
+                res.setExecutionTimeMs(0);
+                res.setTestInput(finalInput);
+                res.setExpectedOutput(expected.trim());
+                res.setPassed(false);
+                return res;
             }
-            errorResult.setStatusDescription("Execution service error: " + errMsg);
-            errorResult.setPassed(false);
-            return errorResult;
+            
+            if (resultNode.has("status")) {
+                res.setStatusId(resultNode.get("status").get("id").asInt());
+                res.setStatusDescription(resultNode.get("status").get("description").asText());
+            }
+
+            // Decode outputs (Stdout, Stderr, etc.)
+            res.setActualOutput(decode(resultNode.path("stdout").asText()));
+            res.setStderr(decode(resultNode.path("stderr").asText()));
+            res.setCompileOutput(decode(resultNode.path("compile_output").asText()));
+            res.setExecutionTimeMs(resultNode.path("time").asDouble() * 1000);
+            res.setTestInput(finalInput);
+            res.setExpectedOutput(expected.trim());
+
+            String judgeMessage = resultNode.path("message").asText("").trim();
+            if (!judgeMessage.isEmpty() && (res.getStderr() == null || res.getStderr().isEmpty())) {
+                res.setStderr(judgeMessage);
+            }
+
+            // 4. Grading Logic (Status 3 = Accepted by Judge0, meaning it ran without crashing)
+            String actual = res.getActualOutput() != null ? res.getActualOutput().trim() : "";
+            String expectedTrimmed = expected.trim();
+            
+            // Strictly compare trimmed outputs
+            boolean ok = res.getStatusId() == 3 && actual.equalsIgnoreCase(expectedTrimmed);
+            res.setPassed(ok);
+
+            if (res.getStatusId() == 3) {
+                if (ok) {
+                    res.setStatusDescription("Accepted");
+                } else {
+                    res.setStatusDescription("Wrong Answer: Your output did not match the expected output.");
+                    // Log the mismatch for the server logs
+                    log.info("[DEBUG] Mismatch! Expected: [{}], Got: [{}]", expectedTrimmed, actual);
+                }
+            }
+
+
+            return res;
+        } catch (Exception e) { 
+            log.error("[DEBUG] Judge0 execution failed. Source: {}, Lang: {}, API: {}", source, lang, apiUrl, e);
+            CodeExecutionResult res = new CodeExecutionResult();
+            res.setStatusId(13);
+            res.setStatusDescription("Execution Error");
+            res.setActualOutput("");
+            res.setStderr(e.getMessage() == null ? "Unknown execution error" : e.getMessage());
+            res.setCompileOutput("");
+            res.setExecutionTimeMs(0);
+            res.setTestInput(stdin == null ? "" : stdin);
+            res.setExpectedOutput("");
+            res.setPassed(false);
+            return res;
         }
     }
 
-    @Override
-    public int languageId(String language) {
-        String lang = language.toLowerCase().trim();
-        Integer id = LANGUAGE_MAP.get(lang);
-        if (id == null) {
-            throw new BadRequestException(
-                    "Unsupported language: " + language + ". Supported: java, python, cpp, c, javascript, sql, c#, go, rust, swift, php");
-        }
-        return id;
+    public int languageId(String l) {
+        if (l == null) return 71; // Default to Python if null
+        return switch (l.toLowerCase()) {
+            case "java" -> 62;
+            case "python" -> 71;
+            case "cpp", "c++" -> 54;
+            case "c" -> 50;
+            case "csharp", "c#" -> 51;
+            case "javascript" -> 63;
+            default -> 71;
+        };
     }
 
-    /* ---- helpers ---- */
-
-    private String b64Encode(String text) {
-        return Base64.getEncoder().encodeToString(text.getBytes());
-    }
-
-    private String b64Decode(JsonNode root, String field) {
-        JsonNode node = root.get(field);
-        if (node == null || node.isNull()) return null;
-        String val = node.asText().trim(); // Judge0 appends \n to base64 – trim first
+    private String decode(String base64) {
+        if (base64 == null || base64.isEmpty() || "null".equals(base64)) return "";
         try {
-            return new String(Base64.getMimeDecoder().decode(val));
-        } catch (IllegalArgumentException e) {
-            return val; // not base64, return as-is
+            return new String(Base64.getMimeDecoder().decode(base64.trim()))
+                .replace("\r\n", "\n").trim();
+        } catch (Exception e) {
+            return "";
         }
     }
 }

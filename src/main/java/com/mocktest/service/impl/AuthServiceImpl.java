@@ -35,10 +35,10 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
 
     public AuthServiceImpl(AuthenticationManager authManager,
-                           UserRepository userRepository,
-                           DepartmentRepository departmentRepository,
-                           PasswordEncoder passwordEncoder,
-                           JwtTokenProvider tokenProvider) {
+            UserRepository userRepository,
+            DepartmentRepository departmentRepository,
+            PasswordEncoder passwordEncoder,
+            JwtTokenProvider tokenProvider) {
         this.authManager = authManager;
         this.userRepository = userRepository;
         this.departmentRepository = departmentRepository;
@@ -62,18 +62,18 @@ public class AuthServiceImpl implements AuthService {
             String token = tokenProvider.generateToken(
                     user.getEmail(), user.getRole().name());
 
-            System.out.println("[DEBUG] Login successful for user: " + request.getEmail() + " with role: " + user.getRole());
-            
+            System.out.println(
+                    "[DEBUG] Login successful for user: " + request.getEmail() + " with role: " + user.getRole());
+
             Long deptId = user.getDepartment() != null ? user.getDepartment().getId() : null;
             String deptName = user.getDepartment() != null ? user.getDepartment().getName() : null;
 
             return new LoginResponse(
-                token, 
-                java.util.List.of(user.getRole().name()), 
-                user.getName(),
-                deptId,
-                deptName
-            );
+                    token,
+                    java.util.List.of(user.getRole().name()),
+                    user.getName(),
+                    deptId,
+                    deptName);
         } catch (Exception e) {
             System.err.println("[ERROR] Login failed for user: " + request.getEmail() + " - " + e.getMessage());
             throw e;
@@ -95,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
             role = Role.valueOf(request.getRole().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(
-                    "Invalid role: " + request.getRole() + ". Must be ADMIN, MEDIATOR or STUDENT");
+                    "Invalid role: " + request.getRole() + ". Must be ADMIN, MEDIATOR, MODERATOR or STUDENT");
         }
 
         User user = new User(
@@ -106,8 +106,9 @@ public class AuthServiceImpl implements AuthService {
                 department);
 
         User savedUser = userRepository.save(user);
-        
-        System.out.println("[DEBUG] Created user: " + savedUser.getEmail() + " (ID: "+savedUser.getId()+") for department: " + department.getName());
+
+        System.out.println("[DEBUG] Created user: " + savedUser.getEmail() + " (ID: " + savedUser.getId()
+                + ") for department: " + department.getName());
 
         return "User registered successfully";
     }
@@ -207,7 +208,7 @@ public class AuthServiceImpl implements AuthService {
     public void updatePassword(Long userId, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        
+
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         System.out.println("[DEBUG] Password updated for user: " + user.getEmail());

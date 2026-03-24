@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/super-admin/departments")
+@RequestMapping({"/api/super-admin/departments", "/api/superadmin/colleges"})
 @PreAuthorize("hasRole('SUPER_ADMIN')")
 public class SuperAdminController {
 

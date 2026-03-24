@@ -1,40 +1,44 @@
 $ErrorActionPreference = "Stop"
 
 $DOCKER_USER = "ganesh200504"
-$BACKEND_REPO = "mocktest-backend"
-$FRONTEND_REPO = "exam-portal-frontend"
 $TAG = "latest"
 
-Write-Host "🚀 Starting Docker Hub Build & Push Process..." -ForegroundColor Cyan
+$BACKEND_IMAGE = $DOCKER_USER + "/" + "mocktest-backend" + ":" + $TAG
+$FRONTEND_IMAGE = $DOCKER_USER + "/" + "mocktest-frontend" + ":" + $TAG
+$DB_IMAGE = $DOCKER_USER + "/" + "mocktest-db" + ":" + $TAG
+$REDIS_IMAGE = $DOCKER_USER + "/" + "mocktest-redis" + ":" + $TAG
+$JUDGE0_IMAGE = $DOCKER_USER + "/" + "mocktest-judge0-engine" + ":" + $TAG
 
-# Check if Docker is running and logged in
-try {
-    Write-Host "🔍 Checking Docker status..." -ForegroundColor Gray
-    $info = docker info --format '{{.OSType}}'
-    Write-Host "✅ Docker is running ($info)" -ForegroundColor Green
-}
-catch {
-    Write-Error "❌ Docker Desktop is NOT RESPONDING. Please RESTART Docker Desktop and try again."
-    exit 1
-}
+Write-Host "Starting Docker Hub builds for ALL 5 images..."
 
-# Backend
-Write-Host "📦 Building Backend Image..." -ForegroundColor Yellow
-docker build -t "${DOCKER_USER}/${BACKEND_REPO}:${TAG}" ./backend
+# 1. Build and Push Backend
+Write-Host "Building Backend..."
+docker build -t $BACKEND_IMAGE .
+Write-Host "Pushing Backend..."
+docker push $BACKEND_IMAGE
 
-# Frontend
-Write-Host "📦 Building Frontend Image..." -ForegroundColor Yellow
-docker build -t "${DOCKER_USER}/${FRONTEND_REPO}:${TAG}" ./frontend
+# 2. Build and Push Frontend
+Write-Host "Building Frontend..."
+docker build -t $FRONTEND_IMAGE ./frontend
+Write-Host "Pushing Frontend..."
+docker push $FRONTEND_IMAGE
 
-# Push Backend
-Write-Host "📤 Pushing Backend to Docker Hub..." -ForegroundColor Yellow
-docker push "${DOCKER_USER}/${BACKEND_REPO}:${TAG}"
+# 3. Pull, Tag, and Push DB
+Write-Host "Tagging and Pushing DB (Postgres)..."
+docker pull postgres:15-alpine
+docker tag postgres:15-alpine $DB_IMAGE
+docker push $DB_IMAGE
 
-# Push Frontend
-Write-Host "📤 Pushing Frontend to Docker Hub..." -ForegroundColor Yellow
-docker push "${DOCKER_USER}/${FRONTEND_REPO}:${TAG}"
+# 4. Pull, Tag, and Push Redis
+Write-Host "Tagging and Pushing Redis..."
+docker pull redis:6.0
+docker tag redis:6.0 $REDIS_IMAGE
+docker push $REDIS_IMAGE
 
-Write-Host "✅ Successfully pushed all images to Docker Hub!" -ForegroundColor Green
-Write-Host "Remote repositories:" -ForegroundColor White
-Write-Host " - ${DOCKER_USER}/${BACKEND_REPO}:${TAG}"
-Write-Host " - ${DOCKER_USER}/${FRONTEND_REPO}:${TAG}"
+# 5. Pull, Tag, and Push Judge0
+Write-Host "Tagging and Pushing Judge0 Engine..."
+docker pull judge0/judge0:1.13.1
+docker tag judge0/judge0:1.13.1 $JUDGE0_IMAGE
+docker push $JUDGE0_IMAGE
+
+Write-Host "Done! ALL 5 images are now updated in your Docker Hub."

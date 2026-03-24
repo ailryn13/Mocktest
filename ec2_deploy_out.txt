@@ -1,4 +1,0 @@
-=== EC2 Deploy Script ===
-Copying files to project...
-✓ Copied CodeCheck.g4
-✓ Copied CodeConstraintCheckerImpl.java

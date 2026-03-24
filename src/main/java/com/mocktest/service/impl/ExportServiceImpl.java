@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class ExportServiceImpl implements ExportService {
 
     private final SubmissionRepository submissionRepository;
@@ -31,7 +32,7 @@ public class ExportServiceImpl implements ExportService {
 
     @Override
     public byte[] exportExamScores(Long examId) throws IOException {
-        Exam exam = examRepository.findById(examId)
+        examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found: " + examId));
 
         List<Submission> submissions = submissionRepository.findByExamId(examId);

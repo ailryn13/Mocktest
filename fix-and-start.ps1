@@ -142,11 +142,11 @@ Write-Info "Backend will start on port 8080 (default from application.yml)"
 
 # Start backend in a new window
 $javaArgs = @(
-    "-Xms256m",
-    "-Xmx1024m",
-    "-XX:+UseG1GC",
-    "-XX:MaxGCPauseMillis=200",
+    "-Xms128m",
+    "-Xmx768m",
+    "-XX:+UseSerialGC",
     "-jar",
+
     "app.jar"
 )
 

@@ -1,0 +1,7 @@
+target/
+frontend/
+.git
+.gitignore
+*.md
+.vscode
+.idea

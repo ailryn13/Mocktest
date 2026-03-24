@@ -25,7 +25,7 @@ public class Department {
     @Column(unique = true)
     private String code;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default true")
     private Boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -90,5 +90,12 @@ public class Department {
 
     public void setParent(Department parent) {
         this.parent = parent;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (isActive == null) {
+            isActive = true;
+        }
     }
 }

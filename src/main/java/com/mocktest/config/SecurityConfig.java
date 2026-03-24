@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()        // login / password-reset
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                .requestMatchers("/api/mediator/**").hasAnyRole("MEDIATOR", "SUPER_ADMIN")
+                .requestMatchers("/api/mediator/**").hasAnyRole("MEDIATOR", "MODERATOR", "SUPER_ADMIN")
                 .requestMatchers("/api/student/**").hasAnyRole("STUDENT", "SUPER_ADMIN")
                 .anyRequest().authenticated()
             )

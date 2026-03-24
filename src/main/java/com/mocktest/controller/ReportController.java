@@ -22,6 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/mediator/reports")
+@SuppressWarnings("null")
 public class ReportController {
 
     private final SubmissionService submissionService;

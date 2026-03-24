@@ -13,14 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-/**
- * Mediator endpoint for enrolling (registering) students in their department.
- * Secured via SecurityConfig: /api/mediator/** → ROLE_MEDIATOR.
- */
 @RestController
 @RequestMapping("/api/mediator")
+@SuppressWarnings("null")
 public class MediatorStudentController {
 
     private final AuthService authService;

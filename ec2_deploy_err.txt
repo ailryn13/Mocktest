@@ -1,1 +1,0 @@
-cp: cannot create regular file '/home/ubuntu/Mocktest/frontend/src/app/mediator/exams/create/page.tsx': No such file or directory

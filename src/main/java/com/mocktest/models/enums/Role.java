@@ -14,6 +14,11 @@ package com.mocktest.models.enums;
 public enum Role {
     ADMIN,
     MEDIATOR,
+    MODERATOR,
     STUDENT,
-    SUPER_ADMIN
+    SUPER_ADMIN;
+
+    public boolean isMediator() {
+        return this == MEDIATOR || this == MODERATOR;
+    }
 }

@@ -2,7 +2,6 @@ package com.mocktest.config;
 
 import com.mocktest.models.User;
 import com.mocktest.models.enums.Role;
-import com.mocktest.repositories.DepartmentRepository;
 import com.mocktest.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +60,18 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         log.info("Running Flyway migrations manually after Hibernate schema generation...");
-        Flyway.configure()
-                .dataSource(dataSource)
-                .baselineOnMigrate(true)
-                .baselineVersion("0")
-                .locations("classpath:db/migration")
-                .load()
-                .migrate();
+        try {
+            Flyway.configure()
+                    .dataSource(dataSource)
+                    .baselineOnMigrate(true)
+                    .baselineVersion("0")
+                    .locations("classpath:db/migration")
+                    .load()
+                    .migrate();
+        } catch (Exception ex) {
+            // Keep startup resilient when schema is already partially managed.
+            log.warn("Skipping manual Flyway migration during startup: {}", ex.getMessage());
+        }
 
         seedUser(adminEmail, adminPassword, adminName, Role.ADMIN);
         seedUser(superAdminEmail, superAdminPassword, superAdminName, Role.SUPER_ADMIN);

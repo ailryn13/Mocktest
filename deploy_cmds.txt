@@ -1,8 +1,0 @@
-cd Mocktest || git clone https://github.com/ailryn13/Mocktest.git Mocktest
-cd Mocktest
-git pull origin main
-cp .env.gcp .env
-docker-compose -f docker-compose.gcp.yml down
-docker-compose -f docker-compose.gcp.yml up -d --build
-sleep 5
-docker-compose -f docker-compose.gcp.yml ps

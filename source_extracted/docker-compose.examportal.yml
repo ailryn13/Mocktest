@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: exam-portal-backend
+    ports:
+      - "9090:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/exam_portal_db
+      - SPRING_DATASOURCE_USERNAME=exam_admin
+      - SPRING_DATASOURCE_PASSWORD=SecurePassword123!
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=exam_user
+      - SPRING_RABBITMQ_PASSWORD=exam_password
+      - SPRING_RABBITMQ_VIRTUAL_HOST=exam_vhost
+      - MINIO_ENDPOINT=http://minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - exam-network
+    restart: unless-stopped
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: exam-portal-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:9090/api/v1
+    depends_on:
+      - backend
+    networks:
+      - exam-network
+    restart: unless-stopped
+
+  # PostgreSQL Database (Internal)
+  postgres:
+    image: postgres:15-alpine
+    container_name: exam-portal-postgres
+    environment:
+      POSTGRES_DB: exam_portal_db
+      POSTGRES_USER: exam_admin
+      POSTGRES_PASSWORD: SecurePassword123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - exam-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U exam_admin" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Internal)
+  redis:
+    image: redis:7-alpine
+    container_name: exam-portal-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - exam-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ (Internal)
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: exam-rabbitmq
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: exam_user
+      RABBITMQ_DEFAULT_PASS: exam_password
+      RABBITMQ_DEFAULT_VHOST: exam_vhost
+    networks:
+      - exam-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Object Storage (S3 Compatible - Internal)
+  minio:
+    image: minio/minio
+    container_name: exam-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # API
+      - "9001:9001" # Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    networks:
+      - exam-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Initialize MinIO Bucket 'test-cases'
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c " /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin; /usr/bin/mc mb myminio/test-cases; /usr/bin/mc anonymous set public myminio/test-cases; exit 0; "
+    networks:
+      - exam-network
+
+networks:
+  exam-network:
+    driver: bridge
+
+volumes:
+  minio_data:
+  postgres_data:
+  redis_data:

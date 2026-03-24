@@ -1,6 +1,6 @@
 #!/bin/bash
 # Production Deployment Script for Mocktest Application
-# Run this on the production server (ubuntu@52.66.218.95)
+# Run this on the production server (ubuntu@34.203.192.91)
 
 echo "=== Starting Mocktest Production Deployment ==="
 echo "Time: $(date)"

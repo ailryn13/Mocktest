@@ -1,0 +1,7 @@
+target/
+logs/
+.git/
+*.log
+*.txt
+*.pdf
+node_modules/
