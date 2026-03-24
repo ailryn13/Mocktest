@@ -55,7 +55,6 @@ services:
     security_opt:
       - seccomp:unconfined
     pid: host
-    user: root
     env_file: judge0.conf
     depends_on:
       judge0-db:
